@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Parse arguments
+if [ $# -lt 1 ]; then
+  set -- "-h";
+else
+  datafile=$1;
+  shift;
+fi
+
+directory="../dat/plots/";
+minFREQ=24;
+freqSTEP=100;
+maxFREQ=1766;
+minDB=-80;
+maxDB=0;
+title="RTL-SDR Frequency Spectrum"
+open=0;
+
+while test $# -gt 0; do
+  case "$1" in
+    -h)
+      printf "Usage  : $0 datafile [options]\n";
+      printf "Options:\n";
+      printf "	-h \t\t\t\t Show this help\n";
+      printf "	-d <dir> \t\t\t Directory to store plots, default=$directory\n";
+      printf "	-f <minFREQ:freqSTEP:maxFREQ> \t Frequency range in MHz to plot, default=$minFREQ:$freqSTEP:$maxFREQ\n";
+      printf "	-b <minDB:maxDB> \t\t dB range to plot, default=$minDB:$maxDB\n";
+      printf "	-t <title> \t\t\t Title of the plot, default='$title'\n";
+      printf "	-o \t\t\t\t Open plot at the end\n";
+      exit 0;
+      ;;
+    -d)
+      directory="$2";
+      shift; shift;
+      ;;
+    -f)
+      tmp="${2%:*}";
+      minFREQ="${tmp%:*}";
+      freqSTEP="${tmp##*:}";
+      maxFREQ="${2##*:}";
+      shift; shift;
+      ;;
+    -b)
+      minDB=${2%:*};
+      maxDB=${2##*:};
+      shift; shift;
+      ;;
+    -t)
+      title="$2";
+      shift; shift;
+      ;;
+    -o)
+      open=1;
+      shift;
+      ;;
+    *)
+      shift;
+      ;;
+  esac
+done
+
+tempfile="${datafile##*/}";
+plotfile="$directory${tempfile%.*}_$minFREQ:$freqSTEP:$maxFREQ_$minDB:$maxDB.eps";
+
+# Run gnuplot
+printf "Calculating plot...\n";
+
+gnuplot -e "_datafile='$datafile'; _plotfile='$plotfile'; _minFREQ='$minFREQ'; _freqSTEP='$freqSTEP'; _maxFREQ='$maxFREQ'; _minDB='$minDB'; _maxDB='$maxDB'; _title='$title'" rpi_plot.gp
+
+printf "Plot stored to \"$plotfile\".\nFinished.\n";
+
+# Open plot
+if [ $open != 0 ]; then
+  gnome-open $plotfile;
+fi

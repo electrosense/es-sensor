@@ -1,0 +1,14 @@
+#!/bin/bash
+
+proc=(`ps -ef | grep run_collector | grep -v grep`)
+if [ ! "$proc" ]; then
+  cd ~/rtl-spec-kafka/
+  ./run_collector 5000 -s 'certs/CA-Cert.pem:certs/Collector-SSL-Cert.pem:certs/Collector-SSL-SK.pem' -m kafka2-1.lambda.armasuisse.ch:9092 &
+  timestamp=$(date)
+  if [ $? -eq 0 ]; then
+    printf "$timestamp  Collector successfully started.\n"
+  else
+    printf "$timestamp  Failed to start collector.\n"
+  fi
+fi
+

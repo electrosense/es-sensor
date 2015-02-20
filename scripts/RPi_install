@@ -1,0 +1,217 @@
+#!/bin/bash
+
+# Install Raspbian using the New-Out-Of-Box-Software (NOOBS)
+#   A. Format entire SD card as primary FAT32 partition using gparted.
+#   B. Download NOOBS ZIP archive and extract it onto the SD card.
+#   C. Insert SD card into the RPi, boot and install Raspbian.
+#   D. Configure Raspbian
+#        Set keyboard layout to CH
+#        Change user password
+#        Change timezone to Zurich
+#        Change hostname
+#   E. Copy this script to the RPi and make it executalbe.
+#   F. Connect RPi over Ethernet to a DHCP server so it gets access to the Internet.
+#   G. Run this script.
+
+# INSTALL
+if [ "$1" != "-u" ]; then
+
+  printf "Please specify the port number associated to this sensor.\n";
+  printf "Sensor Port: "; read SENSOR_PORT;
+
+  printf "Please specify the user and host name of the sensor's controller.\n";
+  printf "Controller User: "; read CONTROLLER_USER;
+  printf "Controller Host: "; read CONTROLLER_HOST;
+
+  # Auto Login
+  printf "===> Enabling auto login...\n";
+  FIND="1:2345:respawn:/sbin/getty --noclear 38400 tty1";
+  REPLACE="1:2345:respawn:\/sbin\/getty --autologin $USER --noclear 38400 tty1";
+  sudo sed -i "s|$FIND|$REPLACE|g" /etc/inittab;
+  printf "<=== Done.\n";
+  
+  # Software
+  printf "===> Updating software packages...\n";
+  sudo rpi-update;
+  sudo apt-get update && sudo apt-get upgrade;
+  printf "<=== Done.\n";
+  ## cmake
+  printf "===> Installing cmake...\n";
+  sudo apt-get install cmake;
+  printf "<=== Done.\n";
+  ## libusb
+  printf "===> Installing libusb...\n";
+  sudo apt-get install libusb-1.0-0-dev;
+  printf "<=== Done.\n";
+  ## wpasupplicant
+  printf "===> Installing wpasupplicant...\n";
+  sudo apt-get install wpasupplicant;
+  printf "<=== Done.\n";
+  ## subversion
+  printf "===> Installing subversion...\n";
+  sudo apt-get install subversion;
+  printf "<=== Done.\n";
+  ## w3m
+  printf "===> Installing w3m...\n";
+  sudo apt-get install w3m;
+  printf "<=== Done.\n";
+  ## at
+  printf "===> Installing at...\n";
+  sudo apt-get install at;
+  printf "<=== Done.\n";
+  ## rtl-sdr
+  printf "===> Installing rtl-sdr...\n";
+  git clone git://git.osmocom.org/rtl-sdr.git $HOME/rtl-sdr;
+  cd $HOME/rtl-sdr; mkdir build; cd build;
+  cmake ../ -DINSTALL_UDEV_RULES=ON;
+  make; sudo make install; sudo ldconfig;
+  DVBCONF="blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2830\n";
+  sudo bash -c "printf \"$DVBCONF\" > /etc/modprobe.d/rtl-blacklist.conf";
+  sudo rmmod dvb_usb_rtl28xxu rtl2832 > /dev/null 2<&1;
+  printf "<=== Done.\n";
+  ## spec-rtl
+  printf "===> Installing spec-rtl...\n";
+  svn checkout https://code.vis.ethz.ch/svn/pdamian_rtl-spec/spec-rtl/ $HOME/spec-rtl;
+  cd $HOME/spec-rtl/src/sensor/;
+  make clean; make;    
+  cd ../../bin/;
+  sudo mknod char_dev c 100 0;
+  RPiSensor="#!/bin/bash\ncd $HOME/spec-rtl/bin/;\nsudo ./RPiSensor.exe \$@;\ncd - > /dev/null 2<&1;\n"
+  printf "$RPiSensor" > RPiSensor;
+  sudo chmod +x RPiSensor;
+  sudo ln -s $HOME/spec-rtl/bin/RPiSensor /usr/local/bin/RPiSensor;
+  printf "<=== Done.\n";
+  
+  # Network Interface Configuration
+  printf "===> Setting up network interface configuration...\n";
+  #./RPi_install_networking;
+	#sudo ifdown lo; sudo ifup lo;
+	#sudo ifdown eth0; sudo ifup eth0; #sudo dhclient eth0;
+	#sudo ifdown wlan0; sudo ifup wlan0; #sudo dhclient wlan0;
+  ### NOTE: Hack allowing setup at ETH network
+  #if [ "$1" == "--w3m" ]; then
+  #  w3m www.google.com
+  #fi
+  printf "<=== Done.\n";
+  
+  # Autonomous Controller Contacting
+  printf "===> Enabling autonomous controller contacting...\n";
+  mkdir $HOME/.ssh > /dev/null 2<&1;
+  sudo chmod 700 $HOME/.ssh;
+  ## Authorize Controller's PK
+  touch $HOME/.ssh/authorized_keys;
+  sudo chmod 600 $HOME/.ssh/authorized_keys;
+  cat $HOME/spec-rtl/src/controller/id_controller.pub >> $HOME/.ssh/authorized_keys;
+  ## Public/Private RSA Key Pair
+  ssh-keygen -t rsa -f $HOME/.ssh/id_sensor;
+  ssh-copy-id -i $HOME/.ssh/id_sensor.pub $CONTROLLER_USER@$CONTROLLER_HOST;
+  ## Reverse SSH Tunneling
+  RSSH=" #!/bin/bash\n\n";
+  RSSH="$RSSH a=(\`ps -ef | grep $SENSOR_PORT | grep -v grep\`);\n";
+  RSSH="$RSSH if [ ! \"\$a\" ]; then\n";
+  RSSH="$RSSH   ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_sensor -fN -R $SENSOR_PORT:localhost:22 $CONTROLLER_USER@$CONTROLLER_HOST;\n";
+  RSSH="$RSSH   if [ \$? -eq 0 ]; then\n";
+  RSSH="$RSSH     printf \"Reverse SSH tunnel opened sucessfully.\\\\n\";\n";
+  RSSH="$RSSH   else\n";
+  RSSH="$RSSH     printf \"Failed to open reverse SSH tunnel: RC \$?.\\\\n\";\n";
+  RSSH="$RSSH   fi\n";
+  RSSH="$RSSH fi\n";
+  printf "$RSSH" > $HOME/rssh;
+  sudo chmod +x $HOME/rssh;
+  ## Cron Job
+  CRONJOB="*/1 * * * * $HOME/rssh >> $HOME/rssh.log 2>&1"
+  crontab -u $USER -l > $HOME/tcrontab;
+  printf "$CRONJOB" >> $HOME/tcrontab;
+  crontab -u $USER $HOME/tcrontab;
+  rm $HOME/tcrontab;
+  printf "<=== Done.\n";
+  
+  # Hardware Watchdog
+  printf "===> Enabling hardware watchdog...\n";
+  sudo su;
+  (
+    head -n1 /etc/init.d/mathkernel
+    echo "### BEGIN INIT INFO"
+    echo "# Provides:          mathkernel"
+    echo "# Required-Start:    \$syslog"
+    echo "# Required-Stop:     \$syslog"
+    echo "# Default-Start:     2 3 4 5"
+    echo "# Default-Stop:      0 1 6"
+    echo "# Short-Description: mathkernel"
+    echo "# Description:       This file should be used to construct scripts to be"
+    echo "#                    placed in /etc/init.d."
+    echo "### END INIT INFO"
+    tail -n +2 /etc/init.d/mathkernel
+  ) > /etc/init.d/mathkernel.new;
+  chmod a+x /etc/init.d/mathkernel.new;
+  mv /etc/init.d/mathkernel /etc/init.d/mathkernel.old;
+  mv /etc/init.d/mathkernel.new /etc/init.d/mathkernel;
+  apt-get install watchdog;
+  sed -e 'sX^#watchdog-deviceXwatchdog-deviceX' -i  /etc/watchdog.conf;
+  grep -q bcm2708_wdog /etc/modules || echo "bcm2708_wdog" >> /etc/modules;
+  modprobe bcm2708_wdog;
+  service watchdog restart;
+  exit;
+  printf "<=== Done.\n";
+
+# UNINSTALL
+else
+
+  # Hardware Watchdog
+  printf "===> Disabling hardware watchdog...\n";
+  sudo su;
+  service watchdog stop;
+  modprobe -r bcm2708_wdog;
+  sed '/bcm2708_wdog/d' -i /etc/modules;
+  sed -e 'sX^watchdog-deviceX#watchdog-deviceX' -i  /etc/watchdog.conf
+  mv /etc/init.d/mathkernel.old /etc/init.d/mathkernel
+  exit;
+  printf "<=== Done.\n";
+
+  # Autonomous Controller Contacting
+  printf "===> Disabling autonomous controller contacting...\n";
+  ## Cron Job
+  crontab -u $USER -r
+  ## Reverse SSH Tunneling
+  rm $HOME/rssh;
+  ## Public/Private RSA Key Pair
+  rm $HOME/.ssh/id_sensor*;
+  ## Authorize Controller's PK
+  rm $HOME/.ssh/authorized_keys;
+  printf "<=== Done.\n";
+
+  # Network Interface Configuration
+  printf "===> Resetting network interface configuration...\n";
+  #./RPi_install_networking -u;
+  #sudo ifdown lo; sudo ifup lo;
+	#sudo ifdown eth0; sudo ifup eth0; #sudo dhclient eth0;
+	#sudo ifdown wlan0; sudo ifup wlan0; #sudo dhclient wlan0;
+  printf "<=== Done.\n";
+  
+  # Software
+  printf "===> Uninstalling software...\n";
+  ## spec-rtl
+  ## rtl-sdr
+  ## at
+  ## w3m
+  ## subversion
+  ## wpasupplicant
+  ## libusb
+  ## cmake
+  sudo rm /usr/local/bin/RPiSensor;
+  sudo rm -r $HOME/spec-rtl;
+  ## rtl-sdr
+  sudo rm /etc/modprobe.d/rtl-blacklist.conf;
+  cd $HOME/rtl-sdr/build/;
+  make uninstall;
+  cd $HOME;
+  sudo rm -r $HOME/rtl-sdr;
+  printf "<=== Done.\n";
+  
+  # Auto Login
+  printf "===> Disabling auto login...\n";
+  FIND="1:2345:respawn:\/sbin\/getty --autologin $USER --noclear 38400 tty1";
+  REPLACE="1:2345:respawn:/sbin/getty --noclear 38400 tty1";
+  sudo sed -i "s|$FIND|$REPLACE|g" /etc/inittab;
+  printf "<=== Done.\n";
+fi

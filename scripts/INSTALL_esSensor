@@ -1,0 +1,364 @@
+#!/bin/bash
+
+# Install Raspbian using the New-Out-Of-Box-Software (NOOBS)
+#   A. Format entire SD card as primary FAT32 partition using gparted.
+#   B. Download NOOBS ZIP archive and extract it onto the SD card.
+#   C. Insert SD card into the RPi, boot and install Raspbian.
+#   D. Configure Raspbian
+#        Set keyboard layout to CH
+#        Change user password
+#        Change timezone to Zurich
+#        Change hostname
+#   E. Copy this script to the RPi and make it executalbe.
+#   F. Connect RPi over Ethernet to a DHCP server so it gets access to the Internet.
+#   G. Run this script.
+
+# Network Interface Configuration
+printf "\n"
+printf "NETWORK INTERFACE CONFIGURATION\n"
+printf "===============================\n"
+printf "(c)onfigure/(r)estore/(s)kip?\n" && read -n 1 -s c
+lo="auto lo\niface lo inet loopback\n"
+eth0="auto eth0\nallow-hotplug eth0\niface eth0 inet dhcp\n"
+wlan0="auto wlan0\nallow-hotplug wlan0"
+default="iface default inet dhcp\n"
+if [ "$c" == "c" ] || [ "$c" == "r" ]; then
+  if [ "$c" == "c" ]; then
+    printf "Do you want to preconfigure a WLAN connection? (y)es/(n)o\n" && read -n 1 -s d
+    if [ "$d" == "y" ]; then
+      printf "SSID: " && read SSID
+      printf "PHASSPHRASE: " && read PASSPHRASE
+      wlan0="$wlan0\niface wlan0 inet dhcp"
+      wlan0="$wlan0\nwpa-ssid \\\"$SSID\\\"\nwpa-psk \\\"$PASSPHRASE\\\"\n"
+    else
+      wlan0="$wlan0\niface wlan0 inet manual"
+      wlan0="$wlan0\nwp-roam /etc/wpa_supplicant/wpa_supplicant.conf\n"
+    fi
+  elif [ "$c" == "r" ]; then
+    wlan0="$wlan0\niface wlan0 inet manual"
+    wlan0="$wlan0\nwp-roam /etc/wpa_supplicant/wpa_supplicant.conf\n"
+  fi
+  sudo chmod 0600 /etc/network/interfaces
+  sudo bash -c "printf \"$lo\n$eth0\n$wlan0\n$default\n\" > /etc/network/interfaces"
+  sudo ifdown eth0 && sudo ifup eth0
+  sudo ifdown wlan0 && sudo ifup wlan0
+fi
+printf "DONE\n"
+
+# Auto Login
+printf "\n"
+printf "AUTO LOGIN\n"
+printf "==========\n"
+printf "(e)nable/(d)isable/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "e" ] || [ "$c" == "d" ]; then
+  if [ "$c" == "e" ]; then
+    FIND="1:2345:respawn:/sbin/getty --noclear 38400 tty1"
+    REPLACE="1:2345:respawn:\/sbin\/getty --autologin $USER --noclear 38400 tty1"
+  elif [ "$c" == "d" ]; then
+    FIND="1:2345:respawn:\/sbin\/getty --autologin $USER --noclear 38400 tty1";
+    REPLACE="1:2345:respawn:/sbin/getty --noclear 38400 tty1";
+  fi
+  sudo sed -i "s|$FIND|$REPLACE|g" /etc/inittab
+fi
+printf "DONE\n"
+
+# RPi-Update
+printf "\n"
+printf "RPi-Update\n"
+printf "==========\n"
+printf "(u)pdate/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "u" ]; then
+  sudo rpi-update
+  sudo apt-get update && sudo apt-get upgrade
+fi
+printf "DONE\n"
+
+# cmake
+printf "\n"
+printf "cmake\n"
+printf "=====\n"
+printf "(i)install/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install cmake
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove cmake
+fi
+printf "DONE\n"
+
+# gcc/g++
+printf "\n"
+printf "gcc/g++\n"
+printf "=======\n"
+printf "(u)pdate/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "u" ]; then
+  sudo apt-get install gcc-4.8 g++-4.8
+  sudo update-alternatives --remove-all gcc
+  sudo update-alternatives --remove-all g++
+  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 20
+  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+  sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 20
+  sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+fi
+printf "DONE\n"
+
+# dig
+printf "\n"
+printf "dig\n"
+printf "===\n"
+printf "(i)nstall/(u)ninstall/(s)kip" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install dnsutils
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove dnsutils
+fi
+printf "DONE\n"
+
+# libssl-dev
+printf "\n"
+printf "libssl-dev\n"
+printf "==========\n"
+printf "(i)nstall/(u)ninstall/(s)kip" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install libssl-dev
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove libssl-dev
+fi
+printf "DONE\n"
+
+# mysql-client
+printf "\n"
+printf "mysql-client\n"
+printf "============\n"
+printf "(i)nstall/(u)ninstall/(s)kip" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install mysql-client
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove mysql-client
+fi
+printf "DONE\n"
+
+# libusb
+printf "\n"
+printf "libusb\n"
+printf "======\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install libusb-1.0-0-dev
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove libusb-1.0-0-dev
+fi
+printf "DONE\n"
+
+# librtlsdr
+printf "\n"
+printf "librtlsdr\n"
+printf "=========\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  git clone git://git.osmocom.org/rtl-sdr.git $HOME/rtl-sdr
+  cd $HOME/rtl-sdr/
+  mkdir build && cd build/
+  cmake ../ -DINSTALL_UDEV_RULES=ON
+  make && sudo make install && sudo ldconfig
+  DVBCONF="blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2830\n"
+  sudo bash -c "printf \"$DVBCONF\" > /etc/modprobe.d/rtl-blacklist.conf"
+  sudo rmmod dvb_usb_rtl28xxu rtl2832 > /dev/null 2<&1
+elif [ "$c" == "u" ]; then
+  sudo rm /etc/modprobe.d/rtl-blacklist.conf
+  cd $HOME/rtl-sdr/build/
+  make uninstall
+  cd $HOME
+  sudo rm -r $HOME/rtl-sdr
+fi
+printf "DONE\n"
+
+# fftw
+printf "\n"
+printf "fftw\n"
+printf "====\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  sudo apt-get install fftw-dev
+elif [ "$c" == "u" ]; then
+  sudo apt-get remove fftw-dev
+fi
+printf "DONE\n"
+
+# Apache Avro
+printf "\n"
+printf "Apache Avro\n"
+printf "===========\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  wget http://mirror.switch.ch/mirror/apache/dist/avro/avro-1.7.7/c/avro-c-1.7.7.tar.gz $HOME/
+  tar -zxf $HOME/avro-c-1.7.7.tar.gz && rm $HOME/avro-c-1.7.7.tar.gz
+  cd $HOME/avro-c-1.7.7/
+  mkdir build && cd build/
+  cmake ../ \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  make && sudo make install && sudo ldconfig
+  cd ../src/
+  sudo cp -r avro/ /usr/local/include/
+  sudo cp avro.h /usr/local/include/
+  cd ../../
+elif [ "$c" == "u" ]; then
+  sudo rm /usr/local/include/avro.h
+  sudo rm -r /usr/local/include/avro
+  cd $HOME/avro-c-1.7.7/build/
+  make clean
+  cd ../../ && sudo rm -r avro-c-1.7.7/
+fi
+printf "DONE\n"
+
+# Apache Kafka
+printf "\n"
+printf "Apache Kafka\n"
+printf "============\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  git clone https://github.com/edenhill/librdkafka.git $HOME/librdkafka
+  cd $HOME/librdkafka/
+  ./configure
+  make && sudo make install && sudo ldconfig
+  cd ../
+elif [ "$c" == "u" ]; then
+  cd $HOME/librdkafka/
+  make clean
+  cd ../ && sudo rm -r librdkafka/
+fi
+printf "DONE\n"
+
+# rtl-spec
+printf "\n"
+printf "rtl-spec\n"
+printf "========\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+  git clone https://github.com/pdamian/rtl-spec.git $HOME/rtl-spec
+  cd $HOME/rtl-spec/
+  make sensor_gpu_kafka CFLAGS="-O3"
+elif [ "$c" == "u" ]; then
+  cd $HOME/rtl-spec/
+  make clean
+  cd ../ && sudo rm -r rtl-spec/
+fi
+printf "DONE\n"
+
+# Autonomous Controller Contacting
+printf "\n"
+printf "Autonomous Controller Contacting\n"
+printf "================================\n"
+printf "(e)nable/(d)isable/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "e" ]; then
+  printf "Please specify the user and host name of the sensor's controller.\n"
+  printf "Controller User        : " && read CONTROLLER_USER
+  printf "Controller Host        : " && read CONTROLLER_HOST
+  printf "Controller Port (SSH)  : " && read CONTROLLER_PORT_SSH
+  printf "Controller Port (MySQL): " && read CONTROLLER_PORT_MYSQL
+#  mkdir $HOME/.ssh > /dev/null 2<&1
+#  sudo chmod 700 $HOME/.ssh
+#  ## Authorize Controller's PK
+#  touch $HOME/.ssh/authorized_keys
+#  sudo chmod 600 $HOME/.ssh/authorized_keys
+#  cat $HOME/rtl-spec/src/controller/id_controller.pub >> $HOME/.ssh/authorized_keys
+#  ## Public/Private RSA Key Pair
+#  ssh-keygen -t rsa -f $HOME/.ssh/id_sensor
+#  sed -i 's/^ssh-rsa[[:space:]][A-Za-z0-9+/]\+[[:space:]].*/no-pty,no-X11-forwarding,permitopen="localhost:22",command="\/bin\/echo No commands allowed." &/g' $HOME/.ssh/id_sensor.pub
+#  ssh-copy-id -i $HOME/.ssh/id_sensor.pub "-p $CONTROLLER_PORT_SSH $CONTROLLER_USER@$CONTROLLER_HOST"
+  ## Restrict SSH Daemon
+  sudo sed -i 's/^#[[:space:]]\?PasswordAuthentication[[:space:]]yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+  sudo sed -i 's/^UsePAM[[:space:]]yes/UsePAM no/g' /etc/ssh/sshd_config
+  printf "Hint: '/etc/init.d/sshd restart' might be required for SSH daemon restrictions taking effect.\n"
+  ## Reverse SSH Tunneling
+  RSSH="#!/bin/bash\n\n"
+  RSSH="$RSSH proc=(\`ps -ef | grep 0:localhost:22 | grep -v grep\`)\n"
+  RSSH="$RSSH if [ ! \"\$proc\" ]; then\n"
+  RSSH="$RSSH   HOST=\$(dig +short $CONTROLLER_HOST)\n"
+  RSSH="$RSSH   if [ -z \"\$HOST\" ]; then\n"
+  RSSH="$RSSH     HOST=\"$CONTROLLER_HOST\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH   # SSH\n"
+  RSSH="$RSSH   port=(\`ssh -o StrictHostKeyChecking=no -o TCPKeepAlive=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -i $HOME/.ssh/id_sensor -fNT -R 0:localhost:22 -p $CONTROLLER_PORT_SSH $CONTROLLER_USER@\"\$HOST\" 2>&1 | grep -m 1 -o \"Allocated port [0-9]\\+\" | grep -o \"[0-9]\\+\"\`)\n"
+  RSSH="$RSSH   timestamp=\$(date)\n"
+  RSSH="$RSSH   if [ \$? -eq 0 ]; then\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tReverse SSH tunnel opened successfully on remote port \$port.\\\\n\"\n"
+  RSSH="$RSSH   else\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tFailed to open reverse SSH tunnel_ RC \$?.\\\\n\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH   #MySQL"
+  RSSH="$RSSH   mac_hex=\$(ip link show eth0 | awk '/ether/ {print \$2}')\n"
+  RSSH="$RSSH   mac_dec=\${mac_hex//:}\n"
+  RSSH="$RSSH   mac_dec=\$((16#\$mac_dec))\n"
+  RSSH="$RSSH   sqlres=(\`mysql --host=\"\$HOST\" --port=$CONTROLLER_PORT_MYSQL --user=sensor --password=es-sensor-pass --database=electrosense --execute=\"REPLACE INTO local_connections(MAC,Port) VALUES(\$mac_dec,\$port)\" 2>&1\`)\n"
+  RSSH="$RSSH   if [ -z \$sqlres ]; then\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tMySQL update succeeded.\\\\n\"\n"
+  RSSH="$RSSH   else\n"
+  RSSH="$RSSH     kill \$(ps aux | grep 0:localhost:22 | grep -v grep | awk \'{print \$2}\')\n"
+  RSSH="$RSSH     printf \"\$timestamp MySQL update failed. Reverse SSH tunnel closed.\\\\n\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH fi\n"
+  printf "$RSSH" > $HOME/rssh;
+  sudo chmod +x $HOME/rssh;
+  ## Cron Job
+  CRONJOB="*/1 * * * * $HOME/rssh >> $HOME/rssh.log 2>&1\n"
+  crontab -u $USER -l > $HOME/tcrontab
+  printf "$CRONJOB" >> $HOME/tcrontab
+  crontab -u $USER $HOME/tcrontab
+  rm $HOME/tcrontab;
+elif [ "$c" == "d" ]; then
+  ## Cron Job
+  crontab -u $USER -r
+  ## Reverse SSH Tunneling
+  rm $HOME/rssh $HOME/rssh.log
+  ## Restrict SSH Daemon
+  sudo sed -i 's/^PasswordAuthentication[[:space:]]no/#PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  sudo sed -i 's/^UsePAM[[:space:]]no/UsePAM yes/g' /etc/ssh/sshd_config
+  printf "Hint: '/etc/init.d/sshd restart' might be required for SSH daemon restrictions taking effect.\n"
+#  ## Public/Private RSA Key Pair
+#  rm $HOME/.ssh/id_sensor*
+#  ## Authorize Controller's PK
+#  rm $HOME/.ssh/authorized_keys
+fi
+printf "DONE\n"
+
+# Hardware Watchdog
+printf "\n"
+printf "Hardware Watchdog\n"
+printf "=================\n"
+printf "(i)nstall/(u)ninstall/(s)kip?\n" && read -n 1 -s c
+if [ "$c" == "i" ]; then
+#  sudo su
+#  (
+#    head -n1 /etc/init.d/mathkernel
+#    echo "### BEGIN INIT INFO"
+#    echo "# Provides:          mathkernel"
+#    echo "# Required-Start:    \$syslog"
+#    echo "# Required-Stop:     \$syslog"
+#    echo "# Default-Start:     2 3 4 5"
+#    echo "# Default-Stop:      0 1 6"
+#    echo "# Short-Description: mathkernel"
+#    echo "# Description:       This file should be used to construct scripts to be"
+#    echo "#                    placed in /etc/init.d."
+#    echo "### END INIT INFO"
+#    tail -n +2 /etc/init.d/mathkernel
+#  ) > /etc/init.d/mathkernel.new
+#  chmod a+x /etc/init.d/mathkernel.new
+#  mv /etc/init.d/mathkernel /etc/init.d/mathkernel.old
+#  mv /etc/init.d/mathkernel.new /etc/init.d/mathkernel
+  sudo apt-get install watchdog
+  sudo sed -e 'sX^#watchdog-deviceXwatchdog-deviceX' -i  /etc/watchdog.conf
+  sudo grep -q bcm2708_wdog /etc/modules || sudo bash -c "echo \"bcm2708_wdog\" >> /etc/modules"
+  sudo modprobe bcm2708_wdog
+  sudo service watchdog restart
+  exit
+elif [ "$c" == "u" ]; then
+#  sudo su
+  sudo service watchdog stop
+  sudo modprobe -r bcm2708_wdog
+  sudo sed '/bcm2708_wdog/d' -i /etc/modules
+  sudo sed -e 'sX^watchdog-deviceX#watchdog-deviceX' -i  /etc/watchdog.conf
+#  mv /etc/init.d/mathkernel.old /etc/init.d/mathkernel
+  exit
+fi
+printf "DONE\n"
