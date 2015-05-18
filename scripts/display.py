@@ -28,7 +28,7 @@ cmd =  'gnuplot -e "'
 cmd += '_datafile=\'' + file_dirname + file_basename + '\';'
 cmd += '_plotfile=\'' + options.out_dirname + file_name + '.eps' + '\';'
 cmd += '_title=\'' + options.title + '\';'
-cmd += '" plot.gp'
+cmd += '" /home/rocapal/Thesis/electrosense/trunk/scripts/plot.gp'
 system(cmd)
 
 if options.open:

@@ -6,8 +6,8 @@ set datafile separator ','
 
 splot _datafile using ($2/1000000):($1+7200):3 with image
 set output _plotfile
-set terminal postscript eps enhanced color font 'Verdana,9'
-#set terminal pngcairo size 800,600 enhanced font 'Verdana,9'
+#set terminal postscript eps enhanced color font 'Verdana,9'
+set terminal pngcairo size 800,600 enhanced font 'Verdana,9'
 set view map
 
 set title _title
