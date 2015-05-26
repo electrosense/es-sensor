@@ -9,7 +9,7 @@ include(${DEPS_DIR}/zlib/CMakeLists.txt)
 include(${DEPS_DIR}/fftw3/CMakeLists.txt)
 include(${DEPS_DIR}/ssl/CMakeLists.txt)
 include(${DEPS_DIR}/kafka/CMakeLists.txt)
-
+include(${DEPS_DIR}/avro/CMakeLists.txt)
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 
