@@ -1,22 +1,3 @@
-/*
- * Copyright (C) 2015 by Damian Pfammatter <pfammatterdamian@gmail.com>
- *
- * This file is part of RTL-spec.
- *
- * RTL-Spec is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * RTL-Spec is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,7 +99,7 @@ int main(int argc, char *argv[]) {
   // Ctrl-C signal catcher
   void terminate(int sig) {
     
-    if(sig == SIGINT) fprintf(stderr, "\nCtrl-C caught. Waiting for termination...\n");
+    if(sig == SIGINT)  fprintf(stderr, "\nCtrl-C caught. Waiting for termination...\n");
     
     // Release TCP and SSL/TLS connections
 #if defined(VERBOSE)
@@ -301,6 +282,7 @@ int main(int argc, char *argv[]) {
   
   // Ctrl-C signal catcher
   signal(SIGINT, terminate);
+  signal(SIGTERM, terminate);
   
   while(1) {
     // Wait for thread pool not being empty
@@ -417,15 +399,23 @@ static void* reception(void *args) {
       // Read header
       if(key_file == NULL) {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tcp_read_p(tcp_c, &data_size, sizeof(uint32_t));
+	if(tcp_read_p(tcp_c, &data_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #else
-	tcp_read(tcp_c, &data_size, sizeof(uint32_t));
+	if(tcp_read(tcp_c, &data_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #endif
       } else {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tls_read_p(tls_c, &data_size, sizeof(uint32_t));
+	if(tls_read_p(tls_c, &data_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #else
-	tls_read(tls_c, &data_size, sizeof(uint32_t));
+	if(tls_read(tls_c, &data_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #endif
       }
       data_size = ntohl(data_size);
@@ -433,15 +423,23 @@ static void* reception(void *args) {
 
       if(key_file == NULL) {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tcp_read_p(tcp_c, &reduced_fft_size, sizeof(uint32_t));
+	if(tcp_read_p(tcp_c, &reduced_fft_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #else
-	tcp_read(tcp_c, &reduced_fft_size, sizeof(uint32_t));
+	if(tcp_read(tcp_c, &reduced_fft_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #endif
       } else {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tls_read_p(tls_c, &reduced_fft_size, sizeof(uint32_t));
+	if(tls_read_p(tls_c, &reduced_fft_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #else
-	tls_read(tls_c, &reduced_fft_size, sizeof(uint32_t));
+	if(tls_read(tls_c, &reduced_fft_size, sizeof(uint32_t)) < 0) {
+		break;
+	}
 #endif
       }
       reduced_fft_size = ntohl(reduced_fft_size);
@@ -453,15 +451,23 @@ static void* reception(void *args) {
 
       if(key_file == NULL) {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tcp_read_p(tcp_c, payload_buf, payload_size);
+	if(tcp_read_p(tcp_c, payload_buf, payload_size) < 0) {
+		break;
+	}
 #else
-	tcp_read(tcp_c, payload_buf, payload_size);
+	if(tcp_read(tcp_c, payload_buf, payload_size) < 0) {
+		break;
+	}
 #endif
       } else {
 #if defined(VERBOSE) || defined(VERBOSE_RECP)
-	tls_read_p(tls_c, payload_buf, payload_size);
+	if(tls_read_p(tls_c, payload_buf, payload_size) < 0) {
+		break;
+	}
 #else
-	tls_read(tls_c, payload_buf, payload_size);
+	if(tls_read(tls_c, payload_buf, payload_size) < 0) {
+		break;
+	}
 #endif
       }
       
