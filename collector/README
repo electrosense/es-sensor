@@ -1,0 +1,7 @@
+Compile:
+    mvn clean package
+
+Find the output in the target/ folder.
+Run the collector:
+  java -jar target/esense-collector-1.0-jar-with-dependencies.jar \
+    -T /path/to/truststore.jks -K /path/to/keystore.jks -P <keystorepass>

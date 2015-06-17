@@ -1,0 +1,2 @@
+In order to supply the Java runtime with certificates, they need to be in a
+specific format: JKS. See convert_keys.sh for the necessary commands.
