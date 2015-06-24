@@ -78,10 +78,10 @@ public class ConnectionHandler extends Thread {
 	 *            is generated
 	 * @param length
 	 *            the number of bytes to read
-	 * @return a byte array containing the result read from the InputStream
+	 * @return a byte array containing the result read from the InputStream or
+	 *         null if the end of the stream is reached
 	 * @throws IOException
-	 *             if an IOException occurs while reading or the end of the
-	 *             stream is reached
+	 *             if an IOException occurs while reading
 	 */
 	public static byte[] readBytes(InputStream inStr, byte[] reuseBuff,
 			int length) throws IOException {
@@ -97,7 +97,7 @@ public class ConnectionHandler extends Thread {
 		while (i < length) {
 			read = inStr.read();
 			if (read < 0)
-				throw new IOException("End of stream is reached");
+				return null;
 			reuseBuff[i] = (byte) read;
 			i++;
 		}
@@ -154,6 +154,7 @@ public class ConnectionHandler extends Thread {
 				// read packet size
 				try {
 					sizeBuf = readBytes(inStr, sizeBuf, 4);
+					if (sizeBuf == null) break;
 					// byte order conversion: ntohl()
 					// network byte order in IP is BE
 					packetSize = byteArrayToBeLong(sizeBuf);
@@ -171,10 +172,10 @@ public class ConnectionHandler extends Thread {
 					break;
 				}
 
-				sizeBuf = new byte[4];
 				// read reduced_fft_size
 				try {
 					sizeBuf = readBytes(inStr, sizeBuf, 4);
+					if (sizeBuf == null) break;
 					reducedFftSize = byteArrayToBeLong(sizeBuf);
 					logger.debug("Read reducedFftSize " + reducedFftSize);
 				} catch (SocketException es) {
@@ -197,6 +198,7 @@ public class ConnectionHandler extends Thread {
 				payloadBuf = new byte[(int) payloadSize];
 				try {
 					payloadBuf = readBytes(inStr, payloadBuf, payloadSize);
+					if (payloadBuf == null) break;
 				} catch (SocketException es) {
 					// e.g. if socket closed
 					break;
@@ -227,7 +229,7 @@ public class ConnectionHandler extends Thread {
 						|| senConf.getFrequencyResolution() < 0
 						|| senConf.getHoppingStrategy() < 0
 						|| senConf.getWindowingFunction() < 0) {
-					logger.info("Sample failed sanity check: "
+					logger.error("Sample failed sanity check: "
 							+ sample.toString());
 					break;
 				}
