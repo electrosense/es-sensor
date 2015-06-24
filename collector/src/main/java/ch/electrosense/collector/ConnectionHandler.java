@@ -148,6 +148,7 @@ public class ConnectionHandler extends Thread {
 		long lastStatTime = System.currentTimeMillis();
 		long numRecv = 0;
 		long numRecvLastStat = 0;
+		boolean errorProcessing = false;
 		try {
 			while (socket.isConnected() && !socket.isClosed()
 					&& (!sslEnabled || session.isValid())) {
@@ -236,9 +237,18 @@ public class ConnectionHandler extends Thread {
 
 				// do sth with the message
 				for (MsgHandler h : msgHandler) {
-					h.processRaw(payloadBufC);
-					h.processDecoded(sample);
+					try {
+						h.processRaw(payloadBufC);
+						h.processDecoded(sample);
+					} catch (ProcessingException e) {
+						errorProcessing = true;
+						logger.error("Failed to process message for sample "
+								+ sample + " with handler "
+								+ h.getClass().getSimpleName(), e);
+						break;
+					}
 				}
+				if (errorProcessing) break;
 
 				numRecv++;
 				numRecvLastStat++;

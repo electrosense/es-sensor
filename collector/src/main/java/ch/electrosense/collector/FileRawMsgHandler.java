@@ -53,9 +53,10 @@ public class FileRawMsgHandler implements MsgHandler {
 	/**
 	 * writes the sample into a text file 'sensorid.raw' where sensorid is
 	 * inferred from the Sample
+	 * @throws ProcessingException if output file could not be created
 	 */
 	@Override
-	public synchronized void processDecoded(Sample s) {
+	public synchronized void processDecoded(Sample s) throws ProcessingException {
 		if (s == null)
 			return;
 		Long id = 0l;
@@ -73,8 +74,7 @@ public class FileRawMsgHandler implements MsgHandler {
 				writer = new PrintWriter(outFile);
 				sensor2Writer.put(id, writer);
 			} catch (FileNotFoundException e) {
-				logger.error("Failed to create output file: " + outFile);
-				System.exit(1);
+				throw new ProcessingException("Failed to create output file: " + outFile, e);
 			}
 		}
 		writer.println(s.toString());
