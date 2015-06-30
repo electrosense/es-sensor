@@ -2996,6 +2996,11 @@ static void* tcp_transmission(void *args) {
     log2_fft_size = iin->log2_fft_size;
     fft_size = 1<<log2_fft_size;
     reduced_fft_size = (1-freq_overlap)*(fft_size+1);
+
+    // We need an odd number of bins
+    if (reduced_fft_size % 2 == 0)
+    	reduced_fft_size++;
+
     data_size = iin->data_size;
     
     // Check for changing data sizes
