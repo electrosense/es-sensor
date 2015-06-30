@@ -2581,6 +2581,10 @@ static void* averaging(void *args) {
       
     }
     
+    // Magnitude squared (dB)
+    for(j=0; j<fft_size; ++j)
+    	iout->samples[j] = MAX(10.0f * log10(iout->samples[j]), -100);
+
     // Strategy dependent callback to the monitoring logic
     if(avg_ctx != NULL && avg_ctx->callback != NULL)
       avg_ctx->callback(iout);
