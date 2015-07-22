@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -136,6 +137,9 @@ public class Collector extends Thread {
 					dead.add(i);
 				}
 			}
+			// ensure removal in proper order
+			Collections.sort(dead);
+			Collections.reverse(dead);
 			for (Integer i : dead)
 				threads.remove(i.intValue());
 		}
