@@ -1,4 +1,4 @@
-SET( COLLECTOR_SOURCE_FILES collector/Collector.c UTI.c ITE.c QUE.c TCP.c TLS.c THR.c)
+#SET( COLLECTOR_SOURCE_FILES collector/Collector.c UTI.c ITE.c QUE.c TCP.c TLS.c THR.c)
 
 
 include_directories(
@@ -6,17 +6,17 @@ include_directories(
     ${LIBRTLSDR_INCLUDE_DIRS}
 )
 
-add_executable (run_collector ${COLLECTOR_SOURCE_FILES})
+#add_executable (run_collector ${COLLECTOR_SOURCE_FILES})
 
-TARGET_LINK_LIBRARIES(run_collector
-	${CMAKE_THREAD_LIBS_INIT}	
-	${LIBRTLSDR_LIBRARIES}		
-	${ZLIB_LIBRARIES}
-	${OPENSSL_LIBRARIES}
-	${KAFKA_LIBRARIES}
-	${LIBAVRO_LIBRARIES}
-	rt
-	)
+#TARGET_LINK_LIBRARIES(run_collector
+#	${CMAKE_THREAD_LIBS_INIT}	
+#	${LIBRTLSDR_LIBRARIES}		
+#	${ZLIB_LIBRARIES}
+#	${OPENSSL_LIBRARIES}
+#	${KAFKA_LIBRARIES}
+#	${LIBAVRO_LIBRARIES}
+#	rt
+#	)
 
 
 
