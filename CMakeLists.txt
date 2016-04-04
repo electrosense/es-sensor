@@ -8,7 +8,7 @@ include(${DEPS_DIR}/pthread/CMakeLists.txt)
 include(${DEPS_DIR}/zlib/CMakeLists.txt)
 include(${DEPS_DIR}/fftw3/CMakeLists.txt)
 include(${DEPS_DIR}/ssl/CMakeLists.txt)
-include(${DEPS_DIR}/kafka/CMakeLists.txt)
+#include(${DEPS_DIR}/kafka/CMakeLists.txt)
 include(${DEPS_DIR}/avro/CMakeLists.txt)
 include(${DEPS_DIR}/usb/CMakeLists.txt)
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/src/)
@@ -17,10 +17,12 @@ add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 #INSTALL
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_collector DESTINATION /usr/bin/)
+#INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_collector DESTINATION /usr/bin/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_cpu_sensor DESTINATION /usr/bin/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_gpu_sensor DESTINATION /usr/bin/)
-
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/certs     DESTINATION /etc/electrosense/)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/schema     DESTINATION /etc/electrosense/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/electrosense DESTINATION /etc/init.d/)
 
 # Determine current architecture
 macro(dpkg_arch VAR_NAME)
@@ -43,7 +45,7 @@ SET (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 SET (CPACK_SET_DESTDIR "on")
 SET (CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 
-SET (VERSION 0.0.1-1)
+SET (VERSION 1.1.2-1)
 # CPack version numbers for release tarball name.
 SET (CPACK_PACKAGE_VERSION_MAJOR 0)
 SET (CPACK_PACKAGE_VERSION_MINOR 0)
