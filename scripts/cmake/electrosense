@@ -1,0 +1,23 @@
+#!/bin/bash
+. /lib/lsb/init-functions
+
+set -e
+
+case "$1" in
+     start)
+        echo "Start...."
+        path2shell="/etc/electrosense/"
+        cd $path2shell
+        nohup $2 >> backgroundCommand.out 2>&1 < /dev/null &
+	sleep 2 
+        ;;
+     stop)
+        echo "Stopping..."
+	killproc -p $PIDFILE        
+	sh -c "sudo killall run_gpu_sensor"
+        ;;
+     *)
+        ;;
+esac  
+exit 0
+

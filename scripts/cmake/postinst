@@ -1,0 +1,171 @@
+#!/bin/bash
+
+#RPi-Update
+#sudo rpi-update
+#sudo apt-get update && sudo apt-get upgrade
+
+# Autonomous Controller Contacting
+path="/home/pi"
+user="pi"
+conf_path="/etc/electrosense"
+
+mkdir ${conf_path}
+
+# Network Interface Configuration
+#printf "\n"
+#printf "NETWORK INTERFACE CONFIGURATION\n"
+#printf "===============================\n"
+#printf "(c)onfigure/(r)estore/(s)kip?\n" && read -n 1 -s c
+#lo="auto lo\niface lo inet loopback\n"
+#eth0="auto eth0\nallow-hotplug eth0\niface eth0 inet dhcp\n"
+#wlan0="auto wlan0\nallow-hotplug wlan0"
+#default="iface default inet dhcp\n"
+#if [ "$c" == "c" ] || [ "$c" == "r" ]; then
+#  if [ "$c" == "c" ]; then
+#    printf "Do you want to preconfigure a WLAN connection? (y)es/(n)o\n" && read -n 1 -s d
+#    if [ "$d" == "y" ]; then
+#      printf "SSID: " && read SSID
+#      printf "PHASSPHRASE: " && read PASSPHRASE
+#      wlan0="$wlan0\niface wlan0 inet dhcp"
+#      wlan0="$wlan0\nwpa-ssid \\\"$SSID\\\"\nwpa-psk \\\"$PASSPHRASE\\\"\n"
+#    else
+#      wlan0="$wlan0\niface wlan0 inet manual"
+#      wlan0="$wlan0\nwp-roam /etc/wpa_supplicant/wpa_supplicant.conf\n"
+#    fi
+#  elif [ "$c" == "r" ]; then
+#    wlan0="$wlan0\niface wlan0 inet manual"
+#    wlan0="$wlan0\nwp-roam /etc/wpa_supplicant/wpa_supplicant.conf\n"
+#  fi
+#  sudo chmod 0600 /etc/network/interfaces
+#  sudo bash -c "printf \"$lo\n$eth0\n$wlan0\n$default\n\" > /etc/network/interfaces"
+#  sudo ifdown eth0 && sudo ifup eth0
+#  sudo ifdown wlan0 && sudo ifup wlan0
+#fi
+#printf "DONE\n"
+
+
+# Auto Login
+printf "\n"
+printf "AUTO LOGIN\n"
+printf "==========\n"
+FIND="1:2345:respawn:/sbin/getty --noclear 38400 tty1"
+REPLACE="1:2345:respawn:\/sbin\/getty --autologin $user --noclear 38400 tty1"
+sudo sed -i "s|$FIND|$REPLACE|g" /etc/inittab
+printf "DONE\n"
+
+printf "\n"
+printf "Autonomous Controller Contacting\n"
+printf "================================\n"
+
+# Check if there is an established connection and a cron job already registered
+conn=`ps -ef | grep 0:localhost:22 | grep -v grep | wc -l`
+if [ "$conn" = "0" ]; then
+  
+  printf "Establishing connection with the controller...\n"
+  CONTROLLER_USER="armasuisse"
+  CONTROLLER_HOST="controller.electrosense.org"
+  CONTROLLER_PORT_SSH="2227"
+  CONTROLLER_PORT_MYSQL="3308"
+ 
+  mkdir $path/.ssh > /dev/null 2<&1
+  sudo chmod 700 $path/.ssh
+  sudo chown pi:pi  $path/.ssh
+  ## Authorize Controller's PK
+  touch $path/.ssh/authorized_keys
+  sudo chmod 600 $path/.ssh/authorized_keys
+  cat /etc/electrosense/certs/id_controller.pub >> $path/.ssh/authorized_keys
+  ## Public/Private RSA Key Pair
+  #ssh-keygen -t rsa -f $path/.ssh/id_sensor
+  #sed -i 's/^ssh-rsa[[:space:]][A-Za-z0-9+/]\+[[:space:]].*/no-pty,no-X11-forwarding,permitopen="localhost:22",command="\/bin\/echo No commands allowed." &/g' $path/.ssh/id_sensor.pub
+  #ssh-copy-id -i $path/.ssh/id_sensor.pub "-p $CONTROLLER_PORT_SSH $CONTROLLER_USER@$CONTROLLER_HOST"
+  ## Restrict SSH Daemon
+  sudo sed -i 's/^#[[:space:]]\?PasswordAuthentication[[:space:]]yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+  sudo sed -i 's/^UsePAM[[:space:]]yes/UsePAM no/g' /etc/ssh/sshd_config
+  printf "Hint: '/etc/init.d/sshd restart' might be required for SSH daemon restrictions taking effect.\n"
+  
+  #Place mySQL certificates under /etc/mysql and update my.cnf file
+  sudo cp /etc/electrosense/certs/Sensor-MySQL-Cert.pem /etc/mysql/
+  sudo cp /etc/electrosense/certs/Sensor-MySQL-SK.pem /etc/mysql/
+  sudo cp /etc/electrosense/certs/CA-Cert.pem /etc/mysql/  
+  
+  touch $path/.ssh/id_sensor
+  sudo chmod 600 $path/.ssh/id_sensor
+  cat /etc/electrosense/certs/id_sensor >> $path/.ssh/id_sensor
+  sudo chown pi:pi $path/.ssh/id_sensor  
+
+  touch $path/.ssh/id_sensor.pub
+  sudo chmod 644 $path/.ssh/id_sensor.pub
+  cat /etc/electrosense/certs/id_sensor.pub >> $path/.ssh/id_sensor.pub
+  sudo chown pi:pi $path/.ssh/id_sensor.pub
+
+  sudo chown pi:pi $path/.ssh/authorized_keys
+
+  sudo sed -i '/\[client\]/a ssl-key         = /etc/mysql/Sensor-MySQL-SK.pem' /etc/mysql/my.cnf
+  sudo sed -i '/\[client\]/a ssl-ca          = /etc/mysql/CA-Cert.pem' /etc/mysql/my.cnf
+  sudo sed -i '/\[client\]/a ssl-cert        = /etc/mysql/Sensor-MySQL-Cert.pem' /etc/mysql/my.cnf 
+ 
+  
+ # sudo chmod +x  /usr/bin/run_gpu_sensor
+ # sudo chmod +x  /usr/bin/run_cpu_sensor  
+
+## Reverse SSH Tunneling
+# Check if there is an established connection and a cron job already registered
+#conn=`ps -ef | grep 0:localhost:22 | grep -v grep | wc -l`
+
+#if [ "$conn" = "0" ]; then   
+  
+  RSSH="#!/bin/bash\n\n"
+  RSSH="$RSSH proc=(\`ps -ef | grep 0:localhost:22 | grep -v grep\`)\n"
+  RSSH="$RSSH if [ ! \"\$proc\" ]; then\n"
+  RSSH="$RSSH   HOST=\$(dig +short $CONTROLLER_HOST)\n"
+  RSSH="$RSSH   if [ -z \"\$HOST\" ]; then\n"
+  RSSH="$RSSH     HOST=\"$CONTROLLER_HOST\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH   # SSH\n"
+  RSSH="$RSSH   port=(\`ssh -o StrictHostKeyChecking=no -o TCPKeepAlive=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -i $path/.ssh/id_sensor -fNT -R 0:localhost:22 -p $CONTROLLER_PORT_SSH $CONTROLLER_USER@\"\$HOST\" 2>&1 | grep -m 1 -o \"Allocated port [0-9]\\+\" | grep -o \"[0-9]\\+\"\`)\n"
+  RSSH="$RSSH   timestamp=\$(date)\n"
+  RSSH="$RSSH   if [ \$? -eq 0 ]; then\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tReverse SSH tunnel opened successfully on remote port \$port.\\\\n\"\n"
+  RSSH="$RSSH   else\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tFailed to open reverse SSH tunnel_ RC \$?.\\\\n\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH   #MySQL\n"
+  RSSH="$RSSH   mac_hex=\$(ip link show eth0 | awk '/ether/ {print \$2}')\n"
+  RSSH="$RSSH   mac_dec=\${mac_hex//:}\n"
+  RSSH="$RSSH   mac_dec=\$((16#\$mac_dec))\n"
+  RSSH="$RSSH   sqlres=(\`mysql --host=\"\$HOST\" --port=$CONTROLLER_PORT_MYSQL --user=sensor --password=es-sensor-pass --database=electrosense --execute=\"REPLACE INTO local_connections(MAC,Port) VALUES(\$mac_dec,\$port)\" 2>&1\`)\n"
+  RSSH="$RSSH   if [ -z \$sqlres ]; then\n"
+  RSSH="$RSSH     printf \"\$timestamp\\tMySQL update succeeded.\\\\n\"\n"
+  RSSH="$RSSH   else\n"
+  RSSH="$RSSH     kill \$(ps aux | grep 0:localhost:22 | grep -v grep | awk \'{print \$2}\')\n"
+  RSSH="$RSSH     printf \"\$timestamp MySQL update failed. Reverse SSH tunnel closed.\\\\n\"\n"
+  RSSH="$RSSH   fi\n"
+  RSSH="$RSSH fi\n"
+  
+  mkdir  $path/electrosense
+  printf "$RSSH" > $path/electrosense/rssh;
+  chmod +x $path/electrosense/rssh;
+  sudo chown pi:pi $path/electrosense
+  ## Cron Job
+  CRONJOB="*/1 * * * * $path/electrosense/rssh >> $path/electrosense/rssh.log 2>&1\n"
+  sudo crontab -u $user -l > $path/electrosense/tcrontab
+  printf "$CRONJOB" >> $path/electrosense/tcrontab
+  sudo crontab -u $user $path/electrosense/tcrontab
+  sudo rm $path/electrosense/tcrontab;
+
+fi
+#Create a char device for the needs of FFT
+cd $conf_path
+sudo mknod char_dev c 100 0
+cd $path
+
+sudo chmod +x  /usr/bin/run_gpu_sensor
+sudo chmod +x  /usr/bin/run_cpu_sensor
+sudo chmod +x  /etc/init.d/electrosense
+ 
+#Set up rtl-sdr
+printf "Setting up rtl-sdr\n"
+DVBCONF="blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2830\n"
+sudo bash -c "printf \"$DVBCONF\" > /etc/modprobe.d/rtl-blacklist.conf"
+sudo rmmod dvb_usb_rtl28xxu rtl2832 > /dev/null 2<&1
+printf "End of post-installation script\n"

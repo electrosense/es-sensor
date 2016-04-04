@@ -1,0 +1,10 @@
+#!/bin/bash
+
+user="pi"
+conf_home="/etc/electrosense"
+home="/home/pi"
+
+
+sudo killall run_gpu_sensor
+
+sudo rm /etc/modprobe.d/rtl-blacklist.conf
