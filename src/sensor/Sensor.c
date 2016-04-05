@@ -2821,7 +2821,11 @@ static void* avro_serialization(void *args) {
     avro_value_get_by_name(&avro_value_sen_data, "CenterFreq", &avro_value_center_freq, NULL);
     avro_value_set_int(&avro_value_center_freq, iin->Fc);
     avro_value_get_by_name(&avro_value_sen_data, "SquaredMag", &avro_value_squared_mag, NULL);
-    
+   
+     // We need an odd number of bins
+    if (reduced_fft_size % 2 == 0)
+        reduced_fft_size++;
+ 
     avro_value_t avro_value_element;
     l = (fft_size - reduced_fft_size) / 2;
     for(i=0; i<reduced_fft_size; ++i) {

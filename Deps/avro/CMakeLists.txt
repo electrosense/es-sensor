@@ -1,7 +1,9 @@
+
 include(FindPkgConfig)
 
+
 if(NOT LIBAVRO_FOUND)
-#  pkg_check_modules (LIBAVRO_PKG libavro)
+  pkg_check_modules (LIBAVRO_PKG libavro)
   find_path(LIBAVRO_INCLUDE_DIRS NAMES avro.h
     PATHS
     ${LIBAVRO_PKG_INCLUDE_DIRS}
@@ -15,6 +17,8 @@ if(NOT LIBAVRO_FOUND)
     /usr/lib
     /usr/local/lib
   )
+
+list(APPEND DEPS libavro)
 
 if(LIBAVRO_INCLUDE_DIRS AND LIBAVRO_LIBRARIES)
   set(LIBAVRO_FOUND TRUE CACHE INTERNAL "libavro found")
