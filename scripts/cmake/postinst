@@ -9,7 +9,7 @@ path="/home/pi"
 user="pi"
 conf_path="/etc/electrosense"
 
-mkdir ${conf_path}
+mkdir -p ${conf_path}
 
 # Network Interface Configuration
 #printf "\n"
@@ -67,7 +67,7 @@ if [ "$conn" = "0" ]; then
   CONTROLLER_PORT_SSH="2227"
   CONTROLLER_PORT_MYSQL="3308"
  
-  mkdir $path/.ssh > /dev/null 2<&1
+  mkdir -p $path/.ssh > /dev/null 2<&1
   sudo chmod 700 $path/.ssh
   sudo chown pi:pi  $path/.ssh
   ## Authorize Controller's PK
@@ -142,7 +142,7 @@ if [ "$conn" = "0" ]; then
   RSSH="$RSSH   fi\n"
   RSSH="$RSSH fi\n"
   
-  mkdir  $path/electrosense
+  mkdir -p $path/electrosense
   printf "$RSSH" > $path/electrosense/rssh;
   chmod +x $path/electrosense/rssh;
   sudo chown pi:pi $path/electrosense

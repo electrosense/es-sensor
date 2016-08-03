@@ -11,6 +11,7 @@ include(${DEPS_DIR}/ssl/CMakeLists.txt)
 #include(${DEPS_DIR}/kafka/CMakeLists.txt)
 include(${DEPS_DIR}/avro/CMakeLists.txt)
 include(${DEPS_DIR}/usb/CMakeLists.txt)
+include(${DEPS_DIR}/mysql/CMakeLists.txt)
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 
@@ -37,7 +38,10 @@ macro(dpkg_arch VAR_NAME)
 endmacro(dpkg_arch)
 
 
-# Debian Package 
+# Debian Package
+
+set (CPACK_DEBIAN_PACKAGE_DEPENDS "mysql-client")
+ 
 include (InstallRequiredSystemLibraries)
 SET (CPACK_GENERATOR "DEB")
 SET (CPACK_SOURCE_GENERATOR TGZ)
@@ -45,18 +49,19 @@ SET (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 SET (CPACK_SET_DESTDIR "on")
 SET (CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 
-SET (VERSION 1.1.2-1)
+SET (VERSION 1.1.2-2)
 # CPack version numbers for release tarball name.
 SET (CPACK_PACKAGE_VERSION_MAJOR 0)
 SET (CPACK_PACKAGE_VERSION_MINOR 0)
-SET (CPACK_PACKAGE_VERSION_PATCH 1)
+SET (CPACK_PACKAGE_VERSION_PATCH 2)
 SET (CPACK_DEBIAN_PACKAGE_VERSION ${VERSION})
 
 SET (CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
 SET (CPACK_DEBIAN_PACKAGE_SECTION "net")
 dpkg_arch(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
 
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "${DEPS}")
+#MESSAGE(STATUS "Dependencies: ${DEPS}")
+#SET(CPACK_DEBIAN_PACKAGE_DEPENDS "${DEPS}")
 
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
     "${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/postinst"

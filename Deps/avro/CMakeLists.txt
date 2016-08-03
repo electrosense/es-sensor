@@ -18,7 +18,6 @@ if(NOT LIBAVRO_FOUND)
     /usr/local/lib
   )
 
-list(APPEND DEPS libavro)
 
 if(LIBAVRO_INCLUDE_DIRS AND LIBAVRO_LIBRARIES)
   set(LIBAVRO_FOUND TRUE CACHE INTERNAL "libavro found")
