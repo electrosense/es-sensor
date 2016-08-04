@@ -17,7 +17,7 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "include/THR.h"
+#include "THR.h"
 
 void THR_initialize(Thread **t, unsigned int id) {
   *t = (Thread *) malloc(sizeof(Thread));

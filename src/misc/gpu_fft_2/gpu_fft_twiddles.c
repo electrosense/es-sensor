@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 
-#include "include/gpu_fft.h"
+#include "gpu_fft.h"
 
 #define ALPHA(dx) (2*pow(sin((dx)/2),2))
 #define  BETA(dx) (sin(dx))

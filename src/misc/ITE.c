@@ -17,7 +17,7 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "include/ITE.h"
+#include "ITE.h"
 
 Item* ITE_init() {
   Item *it = NULL;

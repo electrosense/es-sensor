@@ -26,8 +26,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "include/gpu_fft.h"
-#include "include/mailbox.h"
+#include "gpu_fft.h"
+#include "mailbox.h"
 
 #define PERI_BASE 0x20000000
 #define PERI_SIZE 0x02000000

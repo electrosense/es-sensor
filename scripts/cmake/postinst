@@ -87,7 +87,7 @@ if [ "$conn" = "0" ]; then
   sudo cp /etc/electrosense/certs/Sensor-MySQL-Cert.pem /etc/mysql/
   sudo cp /etc/electrosense/certs/Sensor-MySQL-SK.pem /etc/mysql/
   sudo cp /etc/electrosense/certs/CA-Cert.pem /etc/mysql/  
-  
+   
   touch $path/.ssh/id_sensor
   sudo chmod 600 $path/.ssh/id_sensor
   cat /etc/electrosense/certs/id_sensor >> $path/.ssh/id_sensor
@@ -162,10 +162,18 @@ cd $path
 sudo chmod +x  /usr/bin/run_gpu_sensor
 sudo chmod +x  /usr/bin/run_cpu_sensor
 sudo chmod +x  /etc/init.d/electrosense
+sudo chmod +x  /etc/electrosense/run.sh
+
  
 #Set up rtl-sdr
 printf "Setting up rtl-sdr\n"
 DVBCONF="blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2830\n"
 sudo bash -c "printf \"$DVBCONF\" > /etc/modprobe.d/rtl-blacklist.conf"
 sudo rmmod dvb_usb_rtl28xxu rtl2832 > /dev/null 2<&1
+
+sudo update-rc.d electrosense defaults
+sudo systemctl daemon-reload
+sudo /etc/init.d/electrosense start
+
+
 printf "End of post-installation script\n"

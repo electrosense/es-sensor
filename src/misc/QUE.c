@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-#include "include/QUE.h"
+#include "QUE.h"
 
 Queue* QUE_initialize(int size) {
   Queue *q = NULL;

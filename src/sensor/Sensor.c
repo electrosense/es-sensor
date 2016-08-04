@@ -35,15 +35,15 @@
 #include <dirent.h>
 #include <avro.h>
 
-#include "../include/UTI.h"
-#include "../include/THR.h"
-#include "../include/SDR.h"
-#include "../include/ITE.h"
-#include "../include/QUE.h"
-#include "../include/FFT.h"
-#include "../include/TCP.h"
-#include "../include/TLS.h"
-#include "../include/uthash.h"
+#include "../misc/UTI.h"
+#include "../misc/THR.h"
+#include "../SDR.h"
+#include "../misc/ITE.h"
+#include "../misc/QUE.h"
+#include "../misc/FFT.h"
+#include "../misc/TCP.h"
+#include "../misc/TLS.h"
+#include "../misc/uthash.h"
 
 #define DEFAULT_LOG2_FFT_SIZE 8
 #define DEFAULT_MONITOR_TIME 0
