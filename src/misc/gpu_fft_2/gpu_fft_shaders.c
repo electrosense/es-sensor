@@ -27,43 +27,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 static unsigned int shader_256[] = {
-    #include "include/hex/shader_256.hex"
+    #include "hex/shader_256.hex"
 };
 static unsigned int shader_512[] = {
-    #include "include/hex/shader_512.hex"
+    #include "hex/shader_512.hex"
 };
 static unsigned int shader_1k[] = {
-    #include "include/hex/shader_1k.hex"
+    #include "hex/shader_1k.hex"
 };
 static unsigned int shader_2k[] = {
-    #include "include/hex/shader_2k.hex"
+    #include "hex/shader_2k.hex"
 };
 static unsigned int shader_4k[] = {
-    #include "include/hex/shader_4k.hex"
+    #include "hex/shader_4k.hex"
 };
 static unsigned int shader_8k[] = {
-    #include "include/hex/shader_8k.hex"
+    #include "hex/shader_8k.hex"
 };
 static unsigned int shader_16k[] = {
-    #include "include/hex/shader_16k.hex"
+    #include "hex/shader_16k.hex"
 };
 static unsigned int shader_32k[] = {
-    #include "include/hex/shader_32k.hex"
+    #include "hex/shader_32k.hex"
 };
 static unsigned int shader_64k[] = {
-    #include "include/hex/shader_64k.hex"
+    #include "hex/shader_64k.hex"
 };
 static unsigned int shader_128k[] = {
-    #include "include/hex/shader_128k.hex"
+    #include "hex/shader_128k.hex"
 };
 static unsigned int shader_256k[] = {
-    #include "include/hex/shader_256k.hex"
+    #include "hex/shader_256k.hex"
 };
 static unsigned int shader_512k[] = {
-    #include "include/hex/shader_512k.hex"
+    #include "hex/shader_512k.hex"
 };
 static unsigned int shader_1024k[] = {
-    #include "include/hex/shader_1024k.hex"
+    #include "hex/shader_1024k.hex"
 };
 
 static struct {

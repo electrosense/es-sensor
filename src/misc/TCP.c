@@ -29,7 +29,7 @@
 #include <limits.h>
 #include <errno.h>
 
-#include "include/TCP.h"
+#include "TCP.h"
 
 #define DEFAULT_PKT_SIZE_B 512
 

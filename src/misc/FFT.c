@@ -20,11 +20,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #if defined(RPI_GPU)
-#include "include/FFT.h"
-#include "include/mailbox.h"
-#include "include/gpu_fft.h"
+	#if defined(RBP_1)
+	#include "FFT.h"
+	#include "gpu_fft_2/mailbox.h"
+	#include "gpu_fft_2/gpu_fft.h"
+	#else
+	#include "FFT.h"
+        #include "gpu_fft_3/mailbox.h"
+        #include "gpu_fft_3/gpu_fft.h"
+	#endif
 #else
 #include <fftw.h>
 #endif
@@ -41,6 +48,13 @@ static struct GPU_FFT *gpu_fft = NULL;
 static fftw_complex *fftw_in = NULL, *fftw_out = NULL;
 static fftw_plan plan = NULL;
 #endif
+
+/*unsigned Microseconds(void) {
+   struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec*1000000 + ts.tv_nsec/1000;
+}
+*/
 
 void FFT_initialize(int log2_N, int batchsize) {
 	// Set FFT length
@@ -91,7 +105,12 @@ void FFT_forward(float **in, float **out) {
 	}
 
 	// Perform forward FFT
+
+	//unsigned int t[2];
+	//t[0] = Microseconds();	
 	gpu_fft_execute(gpu_fft);
+	//t[1] = Microseconds();
+	//printf("* %u\n", t[1]-t[0]);
 
 	// Scale, shift and convert to magnitude squared (dB)
 	for(i=0; i<_BATCHSIZE; ++i) {
@@ -105,13 +124,23 @@ void FFT_forward(float **in, float **out) {
 				re = base[j-_N/2].re / _N;
 				im = base[j-_N/2].im / _N;
 			}
+			// Magnitude squared (dB)
+			// out[i][j] = 10.f * log10(re*re + im*im);
+			// TODO: Magnitude [dB] and lower limit enforcement
+			//out[i][j] = MAX(10.0f * log10(re*re + im*im), -100);
 			out[i][j] = re*re + im*im;
 		}
 	}
 
+	
+
 #else
 
+
+
 	for(i=0; i<_BATCHSIZE; ++i) {
+
+		//printf("_BATCHSIZE: %d\n", _BATCHSIZE);
 
 		// Prepare FFT input
 		for(j=0; j<_N; ++j) {
@@ -119,11 +148,14 @@ void FFT_forward(float **in, float **out) {
 			fftw_in[j].im = in[i][2*j+1];
 		}
 
+
 		// Perform forward FFT
 		fftw_one(plan, fftw_in, fftw_out);
+		//printf("_N: %d\n", _N);
 
 		// Scale, shift and convert to magnitude squared (dB)
 		for(j=0; j<_N; ++j) {
+			//printf("j: %d\n", j);
 			// Scale and shift
 			if(j < _N/2) {
 				re = fftw_out[_N/2+j].re / _N;
@@ -132,11 +164,14 @@ void FFT_forward(float **in, float **out) {
 				re = fftw_out[j-_N/2].re / _N;
 				im = fftw_out[j-_N/2].im / _N;
 			}
+			// out[i][j] = 10.0f * log10(re*re + im*im);
+			// TODO: Magnitude [dB] and lower limit enforcement
+			// out[i][j] = MAX(10.0f * log10(re*re + im*im), -100);
+			//printf("index: %d,%d\n",i,j);
 			out[i][j] = re*re + im*im;
 		}
 
 	}
-
 #endif
 
 }
@@ -147,8 +182,11 @@ void FFT_release() {
 	gpu_fft_release(gpu_fft);
 	mbox_close(_IOCTL_MB);
 #else
+
 	if(fftw_in != NULL) free(fftw_in);
 	if(fftw_out != NULL) free(fftw_out);
-	if(plan != NULL) fftw_destroy_plan(plan);
+
+	//if(plan != NULL) fftw_destroy_plan(plan);
+
 #endif
 }

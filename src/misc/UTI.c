@@ -17,7 +17,7 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "include/UTI.h"
+#include "UTI.h"
 
 #define MAX_FILE_SIZE 8192
 

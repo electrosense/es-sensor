@@ -1,5 +1,5 @@
 /*
-BCM2835 "GPU_FFT" release 2.0 BETA
+BCM2835 "GPU_FFT" release 2.0
 Copyright (c) 2014, Andrew Holme.
 All rights reserved.
 
@@ -28,10 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string.h>
 
-#include "include/gpu_fft_trans.h"
+#include "gpu_fft_trans.h"
 
 static unsigned int shader_trans[1024] = {
-    #include "include/hex/shader_trans.hex"
+    #include "hex/shader_trans.hex"
 };
 
 int gpu_fft_trans_prepare(

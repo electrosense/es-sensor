@@ -3,6 +3,48 @@ project (electrosense)
 cmake_minimum_required(VERSION 2.8)
 SET( DEPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Deps)
 
+# Determine current architecture
+macro(dpkg_arch VAR_NAME)
+        find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
+        if (DPKG_PROGRAM)
+          execute_process(
+            COMMAND ${DPKG_PROGRAM} --print-architecture
+            OUTPUT_VARIABLE ${VAR_NAME}
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+          )
+        endif(DPKG_PROGRAM)
+endmacro(dpkg_arch)
+
+# Determine number of cores
+macro(num_cores VAR_NAME)
+        execute_process ( COMMAND nproc OUTPUT_VARIABLE ${VAR_NAME} )
+endmacro(num_cores)
+
+dpkg_arch(ARCHITECTURE)
+num_cores(NUM_CORES)
+SET(NUM_CORES 4)
+#message(STATUS "Architecture:  ${ARCHITECTURE}")
+#message(STATUS "Cores: ${NUM_CORES}")
+
+if ( ${ARCHITECTURE} MATCHES "armhf" AND ${NUM_CORES} EQUAL 4)
+        message(STATUS "RBPi model 2")
+        add_definitions(-DRBP_2)
+        set( FFT_INCLUDE_FOLDER "gpu_fft_3/" )
+elseif ( ${ARCHITECTURE} MATCHES "armhf" AND ${NUM_CORES} EQUAL 1)
+        message(STATUS "RBPi model 1")
+        add_definitions(-DRBP_1)
+        set( FFT_INCLUDE_FOLDER "gpu_fft_2/" )
+elseif (${ARCHITECTURE} MATCHES "amd64")
+        message(STATUS "amd64 architecture")
+        set( FFT_INCLUDE_FOLDER "gpu_fft_2/" )
+else ( ${ARCHITECTURE} MATCHES "armhf" AND ${NUM_CORES} EQUAL 4)
+        message(WARNING "architecture unknown!")
+        set( FFT_INCLUDE_FOLDER "gpu_fft_2/" )
+endif ( ${ARCHITECTURE} MATCHES "armhf" AND ${NUM_CORES} EQUAL 4)
+
+message(STATUS "FFT_INCLUDE_FOLDER: ${FFT_INCLUDE_FOLDER}")
+
+
 include(${DEPS_DIR}/rtl-sdr/CMakeLists.txt)
 include(${DEPS_DIR}/pthread/CMakeLists.txt)
 include(${DEPS_DIR}/zlib/CMakeLists.txt)
@@ -15,7 +57,6 @@ include(${DEPS_DIR}/mysql/CMakeLists.txt)
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 
-
 #INSTALL
 
 #INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_collector DESTINATION /usr/bin/)
@@ -23,6 +64,7 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_cpu_sensor DESTINATION /usr/bi
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/run_gpu_sensor DESTINATION /usr/bin/)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/certs     DESTINATION /etc/electrosense/)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/schema     DESTINATION /etc/electrosense/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/run.sh     DESTINATION /etc/electrosense/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/electrosense DESTINATION /etc/init.d/)
 
 # Determine current architecture

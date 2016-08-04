@@ -17,7 +17,7 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "include/SDR.h"
+#include "SDR.h"
 
 /*
  * SDR_initialize - allocate memory and initialize device

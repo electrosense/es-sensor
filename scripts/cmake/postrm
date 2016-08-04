@@ -4,7 +4,8 @@ user="pi"
 conf_home="/etc/electrosense"
 home="/home/pi"
 
+sudo killall -9 run_gpu_sensor
 
-sudo killall run_gpu_sensor
+sudo update-rc.d -f electrosense remove
 
 sudo rm /etc/modprobe.d/rtl-blacklist.conf

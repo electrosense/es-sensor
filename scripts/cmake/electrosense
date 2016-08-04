@@ -1,23 +1,50 @@
-#!/bin/bash
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          electrosense
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       electrosense script
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
 . /lib/lsb/init-functions
 
-set -e
+
+DAEMON="/etc/electrosense/run.sh"
+RUNAS="root"
+
+PIDFILE="/var/run/electrosense.pid"
+LOGFILE="/var/log/electrosense.log"
 
 case "$1" in
-     start)
-        echo "Start...."
-        path2shell="/etc/electrosense/"
-        cd $path2shell
-        nohup $2 >> backgroundCommand.out 2>&1 < /dev/null &
-	sleep 2 
+start)  
+	echo "Start"
+        log_daemon_msg "Starting scanning spectrum" "electrosense"
+        start_daemon -p $PIDFILE $DAEMON 
+        log_end_msg $?
         ;;
-     stop)
-        echo "Stopping..."
-	killproc -p $PIDFILE        
-	sh -c "sudo killall run_gpu_sensor"
+stop)   log_daemon_msg "Stopping scanning spectrum" "electrosense"
+        #killproc -p $PIDFILE $DAEMON
+	sudo killall -9 run_gpu_sensor
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
+        log_end_msg $RETVAL
         ;;
-     *)
+restart) log_daemon_msg "Restarting periodic command scheduler" "electrosense"
+        $0 stop
+        $0 start
         ;;
-esac  
+status)
+        status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+        ;;
+*)      log_action_msg "Usage: /etc/init.d/cron {start|stop|status|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
 exit 0
+
+
 
