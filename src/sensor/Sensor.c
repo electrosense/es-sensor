@@ -51,7 +51,7 @@
 #define DEFAULT_DEV_INDEX 0
 #define DEFAULT_CLK_OFF 0
 #define DEFAULT_CLK_CORR_PERIOD 3600
-#define DEFAULT_HOPPING_STRATEGY_STR "similarity"
+#define DEFAULT_HOPPING_STRATEGY_STR "sequential"
 #define DEFAULT_GAIN 32.8f
 #define DEFAULT_FREQ_OVERLAP (1/6.f)
 #define DEFAULT_AVG_FACTOR 5
@@ -607,12 +607,19 @@ int main(int argc, char *argv[]) {
   spec_moni_ctx->fft_batchlen = manager_ctx->fft_batchlen;
   spec_moni_ctx->gain = manager_ctx->gain;
   spec_moni_ctx->freq_overlap = manager_ctx->freq_overlap;
+
   if(strcmp(manager_ctx->hopping_strategy_str, "random") == 0)
     spec_moni_ctx->hopping_strategy_id = RANDOM_HOPPING_STRATEGY;
   else if(strcmp(manager_ctx->hopping_strategy_str, "similarity") == 0)
     spec_moni_ctx->hopping_strategy_id = SIMILARITY_HOPPING_STRATEGY;
-  else
+  else if(strcmp(manager_ctx->hopping_strategy_str, "sequential") == 0)
     spec_moni_ctx->hopping_strategy_id = SEQUENTIAL_HOPPING_STRATEGY;
+  else
+  {
+	  printf("Warning: Hopping strategy not recognized. Using SEQUENTIAL one ... ");
+	  spec_moni_ctx->hopping_strategy_id = SEQUENTIAL_HOPPING_STRATEGY;
+  }
+
   if(strcmp(manager_ctx->window_fun_str, "hanning") == 0)
     spec_moni_ctx->window_fun_id = HANNING_WINDOW;
   else if(strcmp(manager_ctx->window_fun_str, "blackman_harris_4") == 0)
