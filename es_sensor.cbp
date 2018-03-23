@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="es_sensor"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\cmake\Modules\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/rocapal/thesis/software/es-sensor"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/rocapal/thesis/software/es-sensor"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/rocapal/thesis/software/es-sensor"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="es_sensor">
+				<Option output="/home/rocapal/thesis/software/es-sensor/es_sensor" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rocapal/thesis/software/es-sensor"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DAPP_VERSION=2.0.0"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 es_sensor"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="es_sensor/fast">
+				<Option output="/home/rocapal/thesis/software/es-sensor/es_sensor" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rocapal/thesis/software/es-sensor"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DAPP_VERSION=2.0.0"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 es_sensor/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/rocapal/thesis/software/es-sensor/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/Averaging.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/Averaging.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/FFT.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/FFT.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/FileSink.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/FileSink.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/RemoveDC.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/RemoveDC.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/Windowing.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/ProcessingBlocks/Windowing.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/context/ElectrosenseContext.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/context/ElectrosenseContext.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/drivers/Driver.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/drivers/common/SequentialHopping.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/drivers/common/SequentialHopping.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/drivers/rtlsdr/rtlsdrDriver.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/drivers/rtlsdr/rtlsdrDriver.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/main.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/types/SpectrumSegment.cpp">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/types/SpectrumSegment.h">
+			<Option target="es_sensor"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/version_config.h.in">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/rocapal/thesis/software/es-sensor/cmake/Modules/FindRTLSDR.cmake">
+			<Option virtualFolder="CMake Files\cmake\Modules\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

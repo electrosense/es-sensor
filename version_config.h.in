@@ -1,0 +1,17 @@
+#ifndef VERSION_CONFIG_H
+#define VERSION_CONFIG_H
+
+#include <string>
+
+// define your version_libinterface
+#define ELECTROSENSE_VERSION "@VERSION@"
+
+// alternatively you could add your global method getElectrosenseVersion here
+
+std::string getElectrosenseVersion()
+{
+    return "@VERSION@";
+}
+
+
+#endif // VERSION_CONFIG_H
