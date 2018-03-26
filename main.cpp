@@ -34,14 +34,15 @@
 
 #include "drivers/rtlsdr/rtlsdrDriver.h"
 
-#include "types/SpectrumSegment.h"
 #include "ProcessingBlocks/RemoveDC.h"
 #include "ProcessingBlocks/Windowing.h"
-#include "drivers/Component.h"
-#include "types/SpectrumSegment.h"
 #include "ProcessingBlocks/FFT.h"
 #include "ProcessingBlocks/Averaging.h"
-#include "ProcessingBlocks/FileSink.h"
+
+#include "MiscBlocks/AvroSerialization.h"
+#include "MiscBlocks/Transmission.h"
+
+#include "MiscBlocks/FileSink.h"
 
 
 void usage (char* name)
@@ -62,6 +63,7 @@ void usage (char* name)
                     "  [-w <window>]\n"
                     "  [-l <cmpr_level>]\n"
                     "  [-m <hostname1>:<portnumber1>[;<bandwidth1>],...,<hostnameN>:<portnumberN>[;bandwidthN]]\n"
+                    "  [-n <hostname1>:<portnumber1>[;<bandwidth1>],...,<hostnameN>:<portnumberN>[;<bandwidthN>]#<ca_cert>#<cert>#<key>]\n"
                     "\n"
                     "Arguments:\n"
                     "  min_freq               Lower frequency bound in Hz\n"
@@ -100,8 +102,8 @@ void usage (char* name)
                     "  -r <min_time_res>      Minimal time resolution in seconds [default=%u]\n"
                     "                           0 for no time resolution limitation\n"
                     "  -w <window>            Windowing function [default=%s]\n"
-                    "                           rectangular\n"
                     "                           hanning\n"
+                    "                           rectangular\n"
                     "                           blackman_harris_4\n"
                     "  -l <cmpr_level>        Compression level [default=%u]\n"
                     "                           0 for no compression, fastest\n"
@@ -109,9 +111,14 @@ void usage (char* name)
                     "  -m <hostname1>:<portnumber1>[;<bandwidth1>],...,<hostnameN>:<portnumberN>[;<bandwidthN>]\n"
                     "                         TCP collector hosts [default=%s]\n"
                     "                           Bandwidth limitation in Kb/s\n"
-                    " -p <true|false>         Set FIFO priority to the sampling thread [default=%s]\n"
+                    "  -n <hostname>:<portnumber>#<ca_cert>#<cert>#<key>\n"
+                    "                         SSL/TLS collector host [default=%s]\n"
+                    "                           0 for no SSL/TLS collector\n"
+                    "                           SSL/TLS (CA) certificate and private key files\n"
+                    "  -p <true|false>        Set FIFO priority to the sampling thread [default=%s]\n"
                     "                           true\n"
                     "                           false\n"
+                    "  -u <filename>          Set filename output where Spectrum measurements are saved.\n"
                     "",
             name,
             ElectrosenseContext::getInstance()->getDevIndex(),
@@ -130,6 +137,7 @@ void usage (char* name)
             ElectrosenseContext::getInstance()->getWindowing().c_str(),
             ElectrosenseContext::getInstance()->getComprLevel(),
             ElectrosenseContext::getInstance()->getTcpHosts().c_str(),
+            ElectrosenseContext::getInstance()->getTlsHosts().c_str(),
             ElectrosenseContext::getInstance()->isFifoPriority() ? "true" : "false");
 
 
@@ -142,7 +150,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:p";
+    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:nu:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {
@@ -201,8 +209,14 @@ void parse_args(int argc, char *argv[])
             case 'm':
                 ElectrosenseContext::getInstance()->setTcpHosts(argstr);
                 break;
+            case 'n':
+                ElectrosenseContext::getInstance()->setTlsHosts(argstr);
+                break;
             case 'p':
                 ElectrosenseContext::getInstance()->setFifoPriority(1);
+                break;
+            case 'u':
+                ElectrosenseContext::getInstance()->setOutputFileName(argstr);
                 break;
 
             default:
@@ -249,9 +263,14 @@ int main( int argc, char* argv[] ) {
     auto *avgBlock = new electrosense::Averaging();
     avgBlock->setQueueIn(fftBlock->getQueueOut());
 
-    auto *fileSink = new electrosense::FileSink("/tmp/test.csv");
-    fileSink->setQueueIn(avgBlock->getQueueOut());
+    electrosense::FileSink *fileSink;
+    //fileSink->setQueueIn(avgBlock->getQueueOut());
+
+    // Avro block
+    electrosense::AvroSerialization *avroBlock;
+
     // Transmission
+    electrosense::Transmission *transBlock;
 
     rtlDriver->open("0");
     rtlDriver->start();
@@ -259,12 +278,26 @@ int main( int argc, char* argv[] ) {
     winBlock->start();
     fftBlock->start();
     avgBlock->start();
-    fileSink->start();
 
-    //for (unsigned int i=0; i<blocks.size(); i++)
-    //    blocks[i]->start();
+    //
+    if ( ElectrosenseContext::getInstance()->getTlsHosts().compare(DEFAULT_TLS_HOSTS) !=0 ) {
 
+        avroBlock = new electrosense::AvroSerialization();
+        avroBlock->setQueueIn(avgBlock->getQueueOut());
 
+        transBlock = new electrosense::Transmission();
+        transBlock->setQueueIn(avroBlock->getQueueOut());
+
+        avroBlock->start();
+        transBlock->start();
+    }
+    else if ( ElectrosenseContext::getInstance()->getOutputFileName().compare(DEFAULT_OUTPUT_FILENAME) !=0) {
+
+        fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());
+        fileSink->setQueueIn(avgBlock->getQueueOut());
+
+        fileSink->start();
+    }
 
     while(1)
     {
