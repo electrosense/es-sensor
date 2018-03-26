@@ -23,7 +23,7 @@ set(SOURCE_FILES main.cpp drivers/Driver.h drivers/rtlsdr/rtlsdrDriver.cpp drive
         context/ElectrosenseContext.cpp context/ElectrosenseContext.h
         drivers/common/SequentialHopping.cpp drivers/common/SequentialHopping.h
         types/SpectrumSegment.cpp types/SpectrumSegment.h ProcessingBlocks/RemoveDC.cpp ProcessingBlocks/RemoveDC.h
-        ProcessingBlocks/Windowing.cpp ProcessingBlocks/Windowing.h ProcessingBlocks/FFT.cpp ProcessingBlocks/FFT.h ProcessingBlocks/Averaging.cpp ProcessingBlocks/Averaging.h ProcessingBlocks/FileSink.cpp ProcessingBlocks/FileSink.h)
+        ProcessingBlocks/Windowing.cpp ProcessingBlocks/Windowing.h ProcessingBlocks/FFT.cpp ProcessingBlocks/FFT.h ProcessingBlocks/Averaging.cpp ProcessingBlocks/Averaging.h MiscBlocks/FileSink.cpp MiscBlocks/FileSink.h MiscBlocks/AvroSerialization.cpp MiscBlocks/AvroSerialization.h MiscBlocks/Transmission.cpp MiscBlocks/Transmission.h misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h)
 
 add_executable(es_sensor ${SOURCE_FILES})
 
@@ -32,4 +32,7 @@ target_link_libraries(es_sensor
         pthread
         dl
         liquid
+        avro
+        ssl
+        crypto
 )
