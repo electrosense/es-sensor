@@ -27,7 +27,7 @@ namespace electrosense {
 
     SpectrumSegment::SpectrumSegment(long sensorId,
                 struct timespec timeStamp,
-                long centerFrequency,
+                unsigned long long centerFrequency,
                 long samplingRate,
                 std::vector<std::complex<float>> samples) {
 
@@ -35,7 +35,8 @@ namespace electrosense {
         mTimestamp = timeStamp;
         mCenterFrequency = centerFrequency;
         mSamplingRate = samplingRate;
-        mIQSamples = samples; //.swap(samples);
+        mIQSamples = samples;
+        mAvroBuffer = NULL;
     }
 
     SpectrumSegment::~SpectrumSegment() {
@@ -48,6 +49,9 @@ namespace electrosense {
 
         mPSDValues.clear();
         mPSDValues.shrink_to_fit();
+
+        if (mAvroBuffer)
+            free(mAvroBuffer);
 
     }
 

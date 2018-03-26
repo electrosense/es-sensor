@@ -35,7 +35,7 @@ const int DEFAULT_MIN_TIME_RES  = 0;
 const int DEFAULT_DEV_INDEX = 0;
 const int DEFAULT_CLK_OFF = 0;
 const int DEFAULT_CLK_CORR_PERIOD = 3600;
-const std::string DEFAULT_HOPPING_STRATEGY_STR = "similarity";
+const std::string DEFAULT_HOPPING_STRATEGY_STR = "sequential";
 const float DEFAULT_GAIN = 32.8f;
 const float DEFAULT_FREQ_OVERLAP = (1/6.0);
 const int DEFAULT_AVG_FACTOR = 5;
@@ -45,8 +45,10 @@ const int DEFAULT_FFT_BATCHLEN = 10;
 const int DEFAULT_CMPR_LEVEL = 6;
 const int DEFAULT_SAMP_RATE = 2400000;
 const std::string DEFAULT_TCP_HOSTS = "127.0.0.1:5000";
+const std::string DEFAULT_TLS_HOSTS = "0";
 const bool DEFAULT_FIFO_PRIORITY = true;
 const int DEFAULT_BUFFER_TIME = 5; // milliseconds
+const std::string DEFAULT_OUTPUT_FILENAME = "";
 
 // Hopping Strategies
 const int SEQUENTIAL_HOPPING_STRATEGY = 0;
@@ -58,8 +60,8 @@ const int HANNING_WINDOW 			= 0;
 const int BLACKMAN_HARRIS_WINDOW 	= 1;
 const int RECTANGULAR_WINDOW	 	= 2;
 
-const unsigned int REF_ITERATION_TIME = 35*1000; 	// in microseconds
-const unsigned int REF_ITERATION_TIME_STEP = 450; 	// in microseconds
+//const unsigned int REF_ITERATION_TIME = 35*1000; 	// in microseconds
+//const unsigned int REF_ITERATION_TIME_STEP = 450; 	// in microseconds
 
 
 class ElectrosenseContext {
@@ -109,36 +111,42 @@ public:
     void setSoverlap(unsigned int soverlap);
     const std::string& getTcpHosts() const;
     void setTcpHosts(const std::string& tcpHosts);
+    const std::string& getTlsHosts() const;
+    void setTlsHosts(const std::string& tlsHosts);
     const std::string& getWindowing() const;
     void setWindowing(const std::string& windowing);
     unsigned int getWindowingId() const;
     unsigned int getBufferTime() const;
     void setBufferTime(unsigned int bufferTime);
 
+    std::string getOutputFileName() const;
+    void setOutputFileName(const std::string& fileName);
+
 private:
 
     ElectrosenseContext() {
-
-        setLog2FftSize(DEFAULT_LOG2_FFT_SIZE);
-        setMonitorTime(DEFAULT_MONITOR_TIME);
-        setMinTimeRes(DEFAULT_MIN_TIME_RES);
-        setDevIndex(DEFAULT_DEV_INDEX);
-        setClkOff(DEFAULT_CLK_OFF);
-        setClkCorrPerior(DEFAULT_CLK_CORR_PERIOD);
-        setHoppingStrategy(DEFAULT_HOPPING_STRATEGY_STR);
-        setGain(DEFAULT_GAIN);
-        setFreqOverlap(DEFAULT_FREQ_OVERLAP);
-        setAvgFactor(DEFAULT_AVG_FACTOR);
-        setSoverlap(DEFAULT_SOVERLAP);
-        setWindowing(DEFAULT_WINDOW_FUN_STR);
-        setFFTbatchlen(DEFAULT_FFT_BATCHLEN);
-        setComprLevel(DEFAULT_CMPR_LEVEL);
-        setSamplingRate(DEFAULT_SAMP_RATE);
-        setTcpHosts(DEFAULT_TCP_HOSTS);
-        setFifoPriority(DEFAULT_FIFO_PRIORITY);
-        setMinFreq(0);
-        setMaxFreq(0);
-        setBufferTime(DEFAULT_BUFFER_TIME);
+            setLog2FftSize(DEFAULT_LOG2_FFT_SIZE);
+            setMonitorTime(DEFAULT_MONITOR_TIME);
+            setMinTimeRes(DEFAULT_MIN_TIME_RES);
+            setDevIndex(DEFAULT_DEV_INDEX);
+            setClkOff(DEFAULT_CLK_OFF);
+            setClkCorrPerior(DEFAULT_CLK_CORR_PERIOD);
+            setHoppingStrategy(DEFAULT_HOPPING_STRATEGY_STR);
+            setGain(DEFAULT_GAIN);
+            setFreqOverlap(DEFAULT_FREQ_OVERLAP);
+            setAvgFactor(DEFAULT_AVG_FACTOR);
+            setSoverlap(DEFAULT_SOVERLAP);
+            setWindowing(DEFAULT_WINDOW_FUN_STR);
+            setFFTbatchlen(DEFAULT_FFT_BATCHLEN);
+            setComprLevel(DEFAULT_CMPR_LEVEL);
+            setSamplingRate(DEFAULT_SAMP_RATE);
+            setTcpHosts(DEFAULT_TCP_HOSTS);
+            setTlsHosts(DEFAULT_TLS_HOSTS);
+            setFifoPriority(DEFAULT_FIFO_PRIORITY);
+            setMinFreq(0);
+            setMaxFreq(0);
+            setBufferTime(DEFAULT_BUFFER_TIME);
+            setOutputFileName(DEFAULT_OUTPUT_FILENAME);
     };
 
     static ElectrosenseContext* mInstance;
@@ -169,9 +177,12 @@ private:
     float        mFreqOverlap;
     std::string  mHoppingStrategy;
     std::string  mWindowing;
-    std::string  mTcpHosts;
+    std::string  mTcpHost;
+    std::string  mTlsHost;
+    std::string  mOutputFileName;
     bool 		 mFifoPriority;
     unsigned int mBufferTime;
+
 
 
     unsigned int mHoppingStrategyId;

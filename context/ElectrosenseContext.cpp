@@ -135,6 +135,15 @@ void ElectrosenseContext::setFifoPriority(bool fifoPriority) {
     mFifoPriority = fifoPriority;
 }
 
+std::string ElectrosenseContext::getOutputFileName() const {
+    return mOutputFileName;
+}
+
+void ElectrosenseContext::setOutputFileName(const std::string& fileName) {
+    mOutputFileName = fileName;
+}
+
+
 float ElectrosenseContext::getFreqOverlap() const {
     return mFreqOverlap;
 }
@@ -243,12 +252,21 @@ void ElectrosenseContext::setSoverlap(unsigned int soverlap) {
         mSoverlap = soverlap;
 }
 
+
+const std::string& ElectrosenseContext::getTlsHosts() const {
+    return mTlsHost;
+}
+
+void ElectrosenseContext::setTlsHosts(const std::string& tlsHosts) {
+    mTlsHost = tlsHosts;
+}
+
 const std::string& ElectrosenseContext::getTcpHosts() const {
-    return mTcpHosts;
+    return mTcpHost;
 }
 
 void ElectrosenseContext::setTcpHosts(const std::string& tcpHosts) {
-    mTcpHosts = tcpHosts;
+    mTcpHost = tcpHosts;
 }
 
 const std::string& ElectrosenseContext::getWindowing() const {

@@ -37,7 +37,7 @@ namespace electrosense {
 
 		SpectrumSegment(long sensorId,
 						struct timespec timeStamp,
-						long centerFrequency,
+						unsigned long long centerFrequency,
 						long samplingRate,
 						std::vector<std::complex<float>> samples);
 
@@ -47,25 +47,32 @@ namespace electrosense {
 
 		timespec getTimeStamp() { return mTimestamp; };
 
-		long getCenterFrequency() { return mCenterFrequency; };
+		unsigned long long getCenterFrequency() { return mCenterFrequency; };
 
 		long getSamplingRate() { return mSamplingRate; };
 
 		std::vector<std::complex<float>> &getIQSamples() { return mIQSamples; };
-
 		std::vector<std::complex<float>>& getPSDIQSamples() { return mPSDIQSamples; };
-
         std::vector<float>& getPSDValues() { return mPSDValues; };
+
+		void setAvroBuffer (char *buffer, unsigned int size) { mAvroBuffer = buffer; mAvroSize=size; };
+		char* getAvroBuffer() { return mAvroBuffer; };
+		unsigned int getAvroBufferSize() { return mAvroSize; };
+
 
 	private:
 
 		long mSensorID;
 		struct timespec mTimestamp;
-		long mCenterFrequency;
+		unsigned long long mCenterFrequency;
 		long mSamplingRate;
+
 		std::vector<std::complex<float>> mIQSamples;
 		std::vector<std::complex<float>> mPSDIQSamples;
         std::vector<float> mPSDValues;
+
+		char* mAvroBuffer;
+		unsigned int mAvroSize;
 	};
 }
 #endif /* SRC_SENSOR_SPECTRUMSEGMENT_H_ */
