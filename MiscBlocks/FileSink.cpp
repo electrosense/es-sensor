@@ -59,6 +59,8 @@ namespace electrosense {
 
                 mOutputFile.flush();
 
+                delete(segment);
+
             }
             else
                 usleep(1);

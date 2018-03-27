@@ -149,6 +149,8 @@ void rtlsdrDriver::run ()
     mSeqHopping = new SequentialHopping();
     unsigned int center_freq=0, previous_freq=0, fft_size=0, slen=0;
 
+    uint8_t *iq_buf = NULL;
+
     while (mRunning)
     {
 
@@ -174,7 +176,7 @@ void rtlsdrDriver::run ()
 
         }
 
-        uint8_t *iq_buf = NULL;
+
         unsigned int current_fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
 
 
@@ -193,10 +195,6 @@ void rtlsdrDriver::run ()
 
             iq_buf = (uint8_t *) realloc(iq_buf,slen*sizeof(uint8_t));
 
-        }
-        else
-        {
-            iq_buf = (uint8_t *) realloc(iq_buf,slen*sizeof(uint8_t));
         }
 
         int n_read;
