@@ -187,7 +187,8 @@ namespace electrosense {
 
                 mQueueOut->enqueue(segment);
 
-
+                avro_value_decref(&avro_value_sample);
+                avro_writer_free(avro_writer);
 
             } else
                 usleep(1);
