@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 by IMDEA Networks Institute
+ * Copyright (C) 2018 by IMDEA Networks Institute
  *
  * This file is part of Electrosense.
  *

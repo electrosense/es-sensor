@@ -37,8 +37,6 @@ namespace electrosense {
 
         std::cout << "[*] FileSink block running .... " << std::endl;
 
-        int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
-
         mRunning = true;
         SpectrumSegment* segment;
 

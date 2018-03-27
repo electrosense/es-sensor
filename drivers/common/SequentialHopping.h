@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 by IMDEA Networks Institute
+ * Copyright (C) 2018 by IMDEA Networks Institute
  *
  * This file is part of Electrosense.
  *
@@ -43,7 +43,7 @@ private:
     float mTotalHops;
     std::vector<int> mFreqs;
 
-    int mIndex;
+    unsigned int mIndex;
 };
 
 #endif /* SRC_SEQUENTIALHOPPING_H_ */

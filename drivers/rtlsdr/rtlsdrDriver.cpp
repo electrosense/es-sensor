@@ -147,7 +147,7 @@ void rtlsdrDriver::run ()
     std::cout << "rtlsdrDriver::run" << std::endl;
 
     mSeqHopping = new SequentialHopping();
-    int center_freq=-1, previous_freq=-1, fft_size=-1, slen=0;
+    unsigned int center_freq=0, previous_freq=0, fft_size=0, slen=0;
 
     while (mRunning)
     {
@@ -160,7 +160,8 @@ void rtlsdrDriver::run ()
 		{
             previous_freq = center_freq;
 			int r = rtlsdr_set_center_freq(mDevice, center_freq);
-            // Check the result 'r'
+            if (r!=0)
+                std::cerr << "Error: unable to set center frequency" << std::endl;
 
             // Reset the buffer
             if (rtlsdr_reset_buffer(mDevice)<0) {
@@ -174,7 +175,7 @@ void rtlsdrDriver::run ()
         }
 
         uint8_t *iq_buf = NULL;
-        int current_fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
+        unsigned int current_fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
 
 
         if (fft_size != current_fft_size)
@@ -203,48 +204,26 @@ void rtlsdrDriver::run ()
 	    clock_gettime(CLOCK_REALTIME, &current_time);
 
         int r = rtlsdr_read_sync(mDevice, iq_buf, slen, &n_read);
-        // check results 'r'
-        if(r != 0 || n_read != slen) fprintf(stderr, "WARNING: Synchronous read failed.\n");
+        if(r != 0 || (unsigned int)n_read != slen) fprintf(stderr, "WARNING: Synchronous read failed.\n");
 
-/*
-        printf("slen: %d\n",slen);
-        printf("fft_size: %d\n",fft_size);
-        printf("n_read: %d\n",n_read);
-        printf("avg: %d\n", ElectrosenseContext::getInstance()->getAvgFactor());
-        printf("samplingrate: %d\n" , ElectrosenseContext::getInstance()->getSamplingRate());
-*/
 
         std::vector<std::complex<float>> iq_vector;
 
         for (unsigned int i=0; i<ElectrosenseContext::getInstance()->getAvgFactor(); i++) {
 
             iq_vector.clear();
-            //std::cout << "********************" << std::endl;
 
-            // https://en.wikipedia.org/wiki/Welch%27s_method
-
-            for (uint32_t j = 0; j < current_fft_size*2; j = j + 2) {
+            for (unsigned int j = 0; j < current_fft_size*2; j = j + 2) {
 
                 // Every segment overlaps getSoverlap() samples in time domain.
-
-                //iq_vector.push_back(iq_buf[j+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2]);
-                //iq_vector.push_back(iq_buf[j+1+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2]);
-
 
                 iq_vector.push_back( std::complex<float>(
                         iq_buf[j+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2],
                         iq_buf[j+1+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2] ));
 
-
-                //printf("%u,%u,", iq_buf[j+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2] , iq_buf[j+1+i*(current_fft_size-ElectrosenseContext::getInstance()->getSoverlap())*2] );
             }
 
-            //for (unsigned int j=0; j<512; j=j+2)
-            //    printf("%u,%u,", iq_buf[j],iq_buf[j+1]);
-
-
-            //std::cout << "********************" << std::endl;
-
+            //TODO: Id should be the ethernet MAC
 
             SpectrumSegment *segment = new SpectrumSegment(-1000, current_time, center_freq,
                                                            ElectrosenseContext::getInstance()->getSamplingRate(),

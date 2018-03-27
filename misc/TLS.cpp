@@ -170,7 +170,7 @@ int tls_connect_p(TLS_Connection *c) {
 // }
 
 int tls_read(TLS_Connection *c, void *msg, size_t size) {
-    int bytes_read = 0, cnt;
+    unsigned int bytes_read = 0, cnt;
     while(bytes_read < size) {
         cnt = SSL_read(c->ssl, msg+bytes_read, size-bytes_read);
         if(cnt < 0) return -1;

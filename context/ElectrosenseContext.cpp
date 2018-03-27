@@ -246,7 +246,7 @@ unsigned int ElectrosenseContext::getSoverlap() const {
 
 void ElectrosenseContext::setSoverlap(unsigned int soverlap) {
 
-    if(soverlap > (1<< getLog2FftSize())-1)
+    if(soverlap > (unsigned int)(1<< getLog2FftSize())-1)
         mSoverlap = (1<<getLog2FftSize())/2;
     else
         mSoverlap = soverlap;
