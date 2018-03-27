@@ -43,7 +43,7 @@ namespace electrosense {
 
 		virtual ~SpectrumSegment();
 
-		long getSensorId() { return mSensorID; };
+		long long getSensorId() { return mSensorID; };
 
 		timespec getTimeStamp() { return mTimestamp; };
 
@@ -62,7 +62,7 @@ namespace electrosense {
 
 	private:
 
-		long mSensorID;
+		long long mSensorID;
 		struct timespec mTimestamp;
 		unsigned long long mCenterFrequency;
 		long mSamplingRate;

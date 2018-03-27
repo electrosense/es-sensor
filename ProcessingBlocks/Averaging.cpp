@@ -74,8 +74,6 @@ namespace electrosense {
 
                         psd_avg.push_back(MAX(10.0f * log10(power/avg_factor), -100));
 
-
-
                     }
 
                     avgVector[0]->getPSDValues() = psd_avg;
@@ -88,6 +86,7 @@ namespace electrosense {
 
 
                     avgVector.clear();
+                    psd_avg.clear();
                 }
 
 

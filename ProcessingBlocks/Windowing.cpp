@@ -29,9 +29,7 @@ namespace electrosense {
     Windowing::Windowing(W_FUNCTION window_func) {
         mQueueOut = new ReaderWriterQueue<SpectrumSegment *>(100);
 
-
     }
-
 
     void Windowing::run() {
 
@@ -59,32 +57,12 @@ namespace electrosense {
                 // Perform windowing faction over the segments
                 std::vector<std::complex<float>>& iq_complex = segment->getIQSamples();
 
-                //std::cout << "iq_complex.size(): " << iq_complex.size() << std::endl;
-
                 for (unsigned int p = 0; p < iq_complex.size(); p = p + 1) {
                     std::complex<float> aux = iq_complex[p];
                     iq_complex[p] = std::complex<float> ( (aux.real() * w_func[p]), (aux.imag() *w_func[p]) );
                 }
 
-/*
-                std::cout << "Windowing ****************" << std::endl;
-                for (unsigned int p = 0; p < iq_complex.size(); p = p + 1) {
-                    std::complex<float> aux = iq_complex[p];
-                    std::cout << aux.real() << "," << aux.imag() << ",";
-                }
-                std::cout << "Windowing ****************" << std::endl;
-*/
-
                 mQueueOut->enqueue(segment);
-
-                /*
-                std::cout << "W-Function ****************" << std::endl;
-                for (int i=0; i<fft_size; i++)
-                {
-                    std::cout << hamming(i+1,fft_size) << "," ;
-                }
-                std::cout << "W-Function ****************" << std::endl;
-                */
             }
             else
                 usleep(1);
