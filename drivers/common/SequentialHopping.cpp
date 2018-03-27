@@ -26,7 +26,13 @@ SequentialHopping::SequentialHopping() {
 
     mIndex = 0;
     mFreqStep = (1 - ElectrosenseContext::getInstance()->getFreqOverlap() )* ElectrosenseContext::getInstance()->getSamplingRate();
+
     mTotalHops = (ElectrosenseContext::getInstance()->getMaxFreq() - ElectrosenseContext::getInstance()->getMinFreq() + 1e6) / mFreqStep;
+
+    std::cout << ElectrosenseContext::getInstance()->getMinFreq() << " , " <<
+                 ElectrosenseContext::getInstance()->getMaxFreq() << std::endl;
+
+    std::cout << mTotalHops << std::endl;
 
     mFreqs.insert(mFreqs.begin(), ElectrosenseContext::getInstance()->getMinFreq() + 0.5 * mFreqStep);
 
@@ -36,9 +42,9 @@ SequentialHopping::SequentialHopping() {
     }
 
 }
-long long  SequentialHopping::nextHop()
+uint64_t  SequentialHopping::nextHop()
 {
-    int ret_freq = mFreqs.at(mIndex);
+    uint64_t ret_freq = mFreqs.at(mIndex);
     mIndex++;
 
     if (mIndex>=mFreqs.size())

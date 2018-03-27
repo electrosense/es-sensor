@@ -200,19 +200,19 @@ void ElectrosenseContext::setLog2FftSize(unsigned int log2FftSize) {
     mLog2FftSize = log2FftSize;
 }
 
-unsigned int ElectrosenseContext::getMaxFreq() const {
+uint64_t ElectrosenseContext::getMaxFreq() const {
     return mMaxFreq;
 }
 
-void ElectrosenseContext::setMaxFreq(unsigned int maxFreq) {
+void ElectrosenseContext::setMaxFreq(uint64_t maxFreq) {
     mMaxFreq = maxFreq;
 }
 
-unsigned int ElectrosenseContext::getMinFreq() const {
+uint64_t ElectrosenseContext::getMinFreq() const {
     return mMinFreq;
 }
 
-void ElectrosenseContext::setMinFreq(unsigned int minFreq) {
+void ElectrosenseContext::setMinFreq(uint64_t minFreq) {
     mMinFreq = minFreq;
 }
 

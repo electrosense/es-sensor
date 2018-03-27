@@ -159,6 +159,7 @@ static bool converterDoCommand(converter* driver, char* command, char* responseS
 }
 
 bool converterTune(converter* driver, uint64_t inputFrequency, uint64_t* ifFrequency, bool* invert){
+
 	char replyBuffer[100];
 	snprintf(replyBuffer, sizeof(replyBuffer), "convert setup %llu", inputFrequency);
 	if(!converterDoCommand(driver, replyBuffer, "IF Frequency:", replyBuffer, sizeof(replyBuffer))){

@@ -97,10 +97,10 @@ public:
     unsigned int getLog2FftSize() const;
     void setLog2FftSize(unsigned int log2FftSize);
     unsigned int getReducedFFTSize();
-    unsigned int getMaxFreq() const;
-    void setMaxFreq(unsigned int maxFreq);
-    unsigned int getMinFreq() const;
-    void setMinFreq(unsigned int minFreq);
+    uint64_t getMaxFreq() const;
+    void setMaxFreq(uint64_t maxFreq);
+    uint64_t getMinFreq() const;
+    void setMinFreq(uint64_t minFreq);
     unsigned int getMinTimeRes() const;
     void setMinTimeRes(unsigned int minTimeRes);
     unsigned int getMonitorTime() const;
@@ -160,8 +160,8 @@ private:
 
 //	Thread       *thread;
 
-    unsigned int mMinFreq;
-    unsigned int mMaxFreq;
+    uint64_t mMinFreq;
+    uint64_t mMaxFreq;
     unsigned int mClkCorrPerior;
     unsigned int mSamplingRate;
     unsigned int mLog2FftSize;

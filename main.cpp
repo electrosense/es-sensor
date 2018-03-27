@@ -226,8 +226,8 @@ void parse_args(int argc, char *argv[])
     if(optind+2 != argc) {
         usage(argv[0]);
     } else {
-        ElectrosenseContext::getInstance()->setMinFreq(atol(argv[optind]));
-        ElectrosenseContext::getInstance()->setMaxFreq(atol(argv[optind+1]));
+        ElectrosenseContext::getInstance()->setMinFreq(atoll(argv[optind]));
+        ElectrosenseContext::getInstance()->setMaxFreq(atoll(argv[optind+1]));
     }
 
 }

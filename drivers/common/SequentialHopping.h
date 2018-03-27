@@ -33,17 +33,17 @@ public:
     SequentialHopping();
     virtual ~SequentialHopping();
 
-    long long nextHop();
+    uint64_t nextHop();
 
     bool isRoundFinished();
 
 private:
 
-    float mFreqStep;
-    float mTotalHops;
-    std::vector<long> mFreqs;
+    uint64_t mFreqStep;
+    uint64_t mTotalHops;
+    std::vector<uint64_t> mFreqs;
 
-    unsigned int mIndex;
+    uint64_t mIndex;
 };
 
 #endif /* SRC_SEQUENTIALHOPPING_H_ */

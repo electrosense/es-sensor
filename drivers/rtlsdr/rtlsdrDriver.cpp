@@ -128,12 +128,18 @@ int rtlsdrDriver::open(std::string device) {
     // Check if the converter is needed and if it's available.
     if (ElectrosenseContext::getInstance()->getMaxFreq() > MAX_FREQ_RTL_SDR) {
 
+        mConverterDriver.portPath = new char[CONVERTER_PATH.size() + 1];
+        std::copy(CONVERTER_PATH.begin(), CONVERTER_PATH.end(), mConverterDriver.portPath);
+        mConverterDriver.portPath[CONVERTER_PATH.size()] = '\0';
+
         if(!converterInit(&mConverterDriver)){
             std::cerr << "ERROR: Failed to open the converter" << std::endl;
             throw std::logic_error("Failed to open the converter");
         }
         std::cout << "Converter has been detected properly" << std::endl;
         mConverterEnabled = true;
+
+        delete[] mConverterDriver.portPath;
     }
 
     return 1;
@@ -174,13 +180,13 @@ void rtlsdrDriver::run () {
             mustInvert=false;
 
             // RTL-SDR as proxy of the down-converter
-            if ( mConverterEnabled && ElectrosenseContext::getInstance()->getMaxFreq() > MAX_FREQ_RTL_SDR)  {
+            if ( mConverterEnabled && center_freq > MAX_FREQ_RTL_SDR)  {
 
                 if(!converterTune(&mConverterDriver, center_freq/1e3, &proxyFreq, &mustInvert)){
                     throw std::logic_error("Failed to converterTune");
                 }
 
-                printf("Tuning to %llu kHz, receiving on %llu kHz", center_freq/1000, proxyFreq);
+                printf("Tuning to %llu kHz, receiving on %llu kHz", center_freq/1e3, proxyFreq);
 
                 int r = rtlsdr_set_center_freq(mDevice, proxyFreq*1e3);
                 if (r != 0)
