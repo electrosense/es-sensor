@@ -46,6 +46,8 @@ namespace electrosense {
         tls_init_p(&tls_con, NULL, TLSv1_1_client_method(),
                  mCACert.c_str(), mCert.c_str(), mKey.c_str(), mHost.c_str(), atoi(mPort.c_str()));
 
+        while(!tls_connect(tls_con) < 0) {sleep(1);}
+
         unsigned int prev_data_size = 0, payload_size, packet_size = 0;
         unsigned int *buf = NULL;
 
@@ -86,7 +88,7 @@ namespace electrosense {
 
                 memcpy(buf+2, buffer, data_size);
 
-                tls_write_p(tls_con, buf, packet_size);
+                tls_write(tls_con, buf, packet_size);
 
                 // Free memory of the segment
                 delete(segment);

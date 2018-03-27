@@ -55,21 +55,8 @@ namespace electrosense {
                     // Wait for FFT_batch segments to prepare data and send to the CPU
                     ComputeFFT(mFFTBatch);
 
-//                    std::cout << mFFTBatch[3]->getPSDIQSamples().at(10).real() << " , " <<  mFFTBatch[3]->getPSDIQSamples().at(10).imag() << std::endl ;
-
-/*
-                    std::cout << "FFT ****************" << std::endl;
-                    for (unsigned int i=0; i<mFFTBatch[0]->getPSDIQSamples().size(); i++) {
-
-                        std::complex<float> aux =  mFFTBatch[0]->getPSDIQSamples().at(i);
-                        std::cout << aux.real() << "," << aux.imag() << ",";
-                    }
-                    std::cout << "FFT ****************" << std::endl;
-*/
-
                     for (unsigned int i=0; i<mFFTBatch.size(); i++)
                         mQueueOut->enqueue(mFFTBatch[i]);
-
 
                     mFFTBatch.clear();
                 }
@@ -87,12 +74,10 @@ namespace electrosense {
         std::complex<float> signal_freq[signal_len];
 
 
-        for (int i=0; i<segments.size(); i++) {
+        for (unsigned int i=0; i<segments.size(); i++) {
 
             std::complex<float>* signal = segments[i]->getIQSamples().data();
 
-            //std::cout << segments[i]->getIQSamples()[index].real() << " , " << segments[i]->getIQSamples()[index].imag() << std::endl;
-            //std::cout << signal[index].real() << " , " << signal[index].imag() << std::endl;
 
 
             fftplan q_f = fft_create_plan(signal_len, signal, signal_freq, LIQUID_FFT_FORWARD, flags);
@@ -104,12 +89,7 @@ namespace electrosense {
 
             fft_destroy_plan(q_f);
 
-            //std::cout << signal_freq[index].real() << " , " << signal_freq[index].imag() << std::endl;
-            //std::cout << segments[i]->getPSDSamples()->at(index).real() << " , " << segments[i]->getPSDIQSamples()->at(index).imag() << std::endl;
-
         }
-
-    //    std::cout << segments[3]->getPSDIQSamples().at(10).real() << " , " <<  segments[3]->getPSDIQSamples().at(10).imag() << std::endl ; //<< " | " << signal_freq[10].real() << " , " << signal_freq[10].imag() << std::endl;
 
     }
 

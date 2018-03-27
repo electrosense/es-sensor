@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.7)
 project(es_sensor)
 
 # Set version
@@ -14,6 +14,8 @@ LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 FIND_PACKAGE( RTLSDR REQUIRED )
 INCLUDE_DIRECTORIES("${RTLSDR_INCLUDE_DIR}")
+
+# liquid, avro, ssl, crypto
 
 
 configure_file( version_config.h.in generated/version_config.h )

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 by IMDEA Networks Institute
+ * Copyright (C) 2018 by IMDEA Networks Institute
  *
  * This file is part of Electrosense.
  *
@@ -26,8 +26,6 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
-
-#include <boost/any.hpp>
 
 #include "generated/version_config.h"
 #include "context/ElectrosenseContext.h"
@@ -150,7 +148,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:nu:p";
+    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:mn:u:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {

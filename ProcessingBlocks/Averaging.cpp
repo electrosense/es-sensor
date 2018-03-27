@@ -36,7 +36,7 @@ namespace electrosense {
 
         std::cout << "[*] Averaging block running .... " << std::endl;
 
-        int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
+        unsigned int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
         unsigned int avg_factor = ElectrosenseContext::getInstance()->getAvgFactor();
 
         mRunning = true;
@@ -58,7 +58,7 @@ namespace electrosense {
                     psd_avg.reserve(fft_size);
 
                     // Double: Check that all segments refer to the same center frequency
-                    //std::cout << "Averaging ****************" << std::endl;
+
 
                     psd_avg.clear();
                     for (unsigned int i=0; i<fft_size; i++) {
@@ -70,17 +70,13 @@ namespace electrosense {
                             power = power + std::pow(avgVector[j]->getPSDIQSamples()[i].real(), 2) +
                                     std::pow(avgVector[j]->getIQSamples()[i].imag(), 2);
 
-                            //std::cout << j << " : " << avgVector[j]->getPSDIQSamples()[i].real() << " | "
-                            //                                           << avgVector[j]->getPSDIQSamples()[i].imag() << std::endl;
-
                         }
 
                         psd_avg.push_back(MAX(10.0f * log10(power/avg_factor), -100));
 
-                        //std::cout << MAX(10.0f * log10(power/avg_factor), -100) << ",";
+
 
                     }
-                    //std::cout << "Averaging ****************" << std::endl;
 
                     avgVector[0]->getPSDValues() = psd_avg;
 

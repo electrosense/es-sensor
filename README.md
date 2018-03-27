@@ -1,9 +1,19 @@
 
 # es-sensor 2.0
 
+
+## Requirements
+
+avro-c-1.7.7 
+
+```
+$ apt install git-core cmake  librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev 
+```
+
 ## Compile
 
 ```
+$ git clone $REPO
 $ cmake .
 $ make 
 ```
