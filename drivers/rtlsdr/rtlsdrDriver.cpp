@@ -27,15 +27,14 @@
 namespace electrosense {
 
 
-rtlsdrDriver::rtlsdrDriver()
-{
+rtlsdrDriver::rtlsdrDriver() {
 
     mQueueOut = new ReaderWriterQueue<SpectrumSegment*>(100);
+    mConverterEnabled = false;
 }
 
 
-int rtlsdrDriver::open(std::string device)
-{
+int rtlsdrDriver::open(std::string device) {
     // rtlsdr lib expects to have integer id for identifying the device
     mDeviceId = std::stoi(device);
 
@@ -126,28 +125,38 @@ int rtlsdrDriver::open(std::string device)
 	std::cout << "\t Sampling Rate: " << samplingRate << " samples/sec" << std::endl;
     std::cout << "\t Gain: " << gain << " dB" << std::endl;
 
+    // Check if the converter is needed and if it's available.
+    if (ElectrosenseContext::getInstance()->getMaxFreq() > MAX_FREQ_RTL_SDR) {
+
+        if(!converterInit(&mConverterDriver)){
+            std::cerr << "ERROR: Failed to open the converter" << std::endl;
+            throw std::logic_error("Failed to open the converter");
+        }
+        std::cout << "Converter has been detected properly" << std::endl;
+        mConverterEnabled = true;
+    }
 
     return 1;
 
 }
 
 
-int rtlsdrDriver::close ()
-{
-
+int rtlsdrDriver::close () {
     return 1;
 }
 
 
-void rtlsdrDriver::run ()
-{
+void rtlsdrDriver::run () {
+
     const int BULK_TRANSFER_MULTIPLE = 512;
 
     mRunning = true;
     std::cout << "rtlsdrDriver::run" << std::endl;
 
     mSeqHopping = new SequentialHopping();
-    unsigned int center_freq=0, previous_freq=0, fft_size=0, slen=0;
+    uint64_t center_freq=0, previous_freq=0, fft_size=0, slen=0;
+    uint64_t proxyFreq=0;
+    bool mustInvert;
 
     uint8_t *iq_buf = NULL;
 
@@ -158,27 +167,39 @@ void rtlsdrDriver::run ()
 
         center_freq = mSeqHopping->nextHop();
 
+
         if (previous_freq != center_freq)
 		{
             previous_freq = center_freq;
-			int r = rtlsdr_set_center_freq(mDevice, center_freq);
-            if (r!=0)
-                std::cerr << "Error: unable to set center frequency" << std::endl;
+            mustInvert=false;
 
+            // RTL-SDR as proxy of the down-converter
+            if ( mConverterEnabled && ElectrosenseContext::getInstance()->getMaxFreq() > MAX_FREQ_RTL_SDR)  {
+
+                if(!converterTune(&mConverterDriver, center_freq/1e3, &proxyFreq, &mustInvert)){
+                    throw std::logic_error("Failed to converterTune");
+                }
+
+                printf("Tuning to %llu kHz, receiving on %llu kHz", center_freq/1000, proxyFreq);
+
+                int r = rtlsdr_set_center_freq(mDevice, proxyFreq*1e3);
+                if (r != 0)
+                    std::cerr << "Error: unable to set center frequency" << std::endl;
+
+            // Native RTL-SDR
+            } else {
+
+                int r = rtlsdr_set_center_freq(mDevice, center_freq);
+                if (r != 0)
+                    std::cerr << "Error: unable to set center frequency" << std::endl;
+            }
             // Reset the buffer
             if (rtlsdr_reset_buffer(mDevice)<0) {
                 std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
             }
-
-            //unsigned int freq = rtlsdr_get_center_freq(mDevice);
-            //std::cout << "Center Freq: " << freq << " Hz" << std::endl;
-
-
         }
 
-
         unsigned int current_fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
-
 
         if (fft_size != current_fft_size)
         {
@@ -203,6 +224,12 @@ void rtlsdrDriver::run ()
 
         int r = rtlsdr_read_sync(mDevice, iq_buf, slen, &n_read);
         if(r != 0 || (unsigned int)n_read != slen) fprintf(stderr, "WARNING: Synchronous read failed.\n");
+
+        if(mustInvert){
+            for(int i = 0; i<n_read; i+= 2){
+                iq_buf[i] = 255-iq_buf[i];
+            }
+        }
 
 
         std::vector<std::complex<float>> iq_vector;

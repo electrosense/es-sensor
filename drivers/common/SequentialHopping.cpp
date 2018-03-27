@@ -36,7 +36,7 @@ SequentialHopping::SequentialHopping() {
     }
 
 }
-int SequentialHopping::nextHop()
+long long  SequentialHopping::nextHop()
 {
     int ret_freq = mFreqs.at(mIndex);
     mIndex++;

@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  *
- * 	Authors: 	Roberto Calvo <roberto.calvo@imdea.org>
+ * 	Authors:
+ * 	    Bertold
  *
  */
 
+#ifndef CONVERTER_H_
+#define CONVERTER_H_
 
-#ifndef SRC_SEQUENTIALHOPPING_H_
-#define SRC_SEQUENTIALHOPPING_H_
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "../../context/ElectrosenseContext.h"
-#include <vector>
+typedef struct {
+	bool open;
+	char* portPath;
+	int fd;
+} converter;
 
-class SequentialHopping {
-public:
+bool converterTune(converter* driver, uint64_t inputFrequency, uint64_t* ifFrequency, bool* invert);
+bool converterInit(converter* driver);
 
-    SequentialHopping();
-    virtual ~SequentialHopping();
-
-    long long nextHop();
-
-    bool isRoundFinished();
-
-private:
-
-    float mFreqStep;
-    float mTotalHops;
-    std::vector<long> mFreqs;
-
-    unsigned int mIndex;
-};
-
-#endif /* SRC_SEQUENTIALHOPPING_H_ */
+#endif /* CONVERTER_H_ */

@@ -277,7 +277,7 @@ int main( int argc, char* argv[] ) {
     fftBlock->start();
     avgBlock->start();
 
-    //
+    // Send spectrum measurements to the server.
     if ( ElectrosenseContext::getInstance()->getTlsHosts().compare(DEFAULT_TLS_HOSTS) !=0 ) {
 
         avroBlock = new electrosense::AvroSerialization();
@@ -289,6 +289,7 @@ int main( int argc, char* argv[] ) {
         avroBlock->start();
         transBlock->start();
     }
+    // Send spectrum measurements to a csv file.
     else if ( ElectrosenseContext::getInstance()->getOutputFileName().compare(DEFAULT_OUTPUT_FILENAME) !=0) {
 
         fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());

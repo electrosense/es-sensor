@@ -42,6 +42,10 @@
 #include "../common/SequentialHopping.h"
 #include "../../types/SpectrumSegment.h"
 
+extern "C" {
+#include "converter/converter.h"
+};
+
 namespace electrosense {
 
 
@@ -74,6 +78,9 @@ namespace electrosense {
 
     private:
 
+        const unsigned int MAX_FREQ_RTL_SDR = 1766000000;
+        const std::string CONVERTER_PATH = "/dev/esenseconv";
+
         // Run the driver in the thread
         void run();
 
@@ -86,6 +93,9 @@ namespace electrosense {
 
         ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
 
+
+        converter mConverterDriver;
+        bool mConverterEnabled;
 
     };
 
