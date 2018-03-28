@@ -1,17 +1,11 @@
-//
-// Created by rocapal on 5/10/17.
-//
-
-#ifndef ES_SENSOR_RTLSDR_H
-#define ES_SENSOR_RTLSDR_H
-
 /*
- * Copyright (C) 2017 by Electrosense
+ * Copyright (C) 2018 by IMDEA Networks Institute
  *
+ * This file is part of Electrosense.
  *
  * Electrosense is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * Electrosense is distributed in the hope that it will be useful,
@@ -26,7 +20,8 @@
  * 	    Roberto Calvo-Palomino <roberto.calvo@imdea.org>
  *
  */
-
+#ifndef ES_SENSOR_RTLSDR_H
+#define ES_SENSOR_RTLSDR_H
 
 #include <iostream>
 #include <string>

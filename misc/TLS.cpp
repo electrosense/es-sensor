@@ -1,20 +1,24 @@
 /*
- * Copyright (C) 2015 by Damian Pfammatter <pfammatterdamian@gmail.com>
+ * Copyright (C) 2018 by IMDEA Networks Institute
  *
- * This file is part of RTL-spec.
+ * This file is part of Electrosense.
  *
- * RTL-Spec is free software: you can redistribute it and/or modify
+ * Electrosense is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * RTL-Spec is distributed in the hope that it will be useful,
+ * Electrosense is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * 	Authors:
+ * 	    Damian Pfammatter <pfammatterdamian@gmail.com>
+ *
  */
 
 #include <arpa/inet.h>

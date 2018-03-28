@@ -5,7 +5,7 @@
  *
  * Electrosense is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * Electrosense is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  *
  * 	Authors:
- * 	    Roberto Calvo Palomino <roberto.calvo@imdea.org>
+ * 	    Roberto Calvo-Palomino <roberto.calvo@imdea.org>
  *
  */
 
@@ -179,15 +179,18 @@ void rtlsdrDriver::run () {
             previous_freq = center_freq;
 
             // RTL-SDR as proxy of the down-converter
-            if ( mConverterEnabled)  {
+            if (mConverterEnabled)  {
 
                 if(!converterTune(&mConverterDriver, center_freq/1e3, &proxy_freq, &mustInvert)){
                     throw std::logic_error("Failed to converterTune");
                 }
 
-                printf("Tuning to %llu Hz, receiving on %llu kHz\n", center_freq, proxy_freq);
+                //printf("Tuning to %llu Hz, receiving on %llu kHz\n", center_freq, proxy_freq);
 
                 if (previous_proxy_freq != proxy_freq) {
+
+                    previous_proxy_freq = proxy_freq;
+
                     int r = rtlsdr_set_center_freq(mDevice, proxy_freq * 1e3);
                     if (r != 0)
                         std::cerr << "Error: unable to set center frequency" << std::endl;
@@ -196,7 +199,6 @@ void rtlsdrDriver::run () {
                     if (rtlsdr_reset_buffer(mDevice)<0)
                         std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
 
-                    previous_proxy_freq = proxy_freq;
                 }
             // Native RTL-SDR
             } else {
