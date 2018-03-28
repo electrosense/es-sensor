@@ -76,7 +76,7 @@ int rtlsdrDriver::open(std::string device) {
         throw std::logic_error("Fatal Error");
 	}
 
-    int frequency = ElectrosenseContext::getInstance()->getMinFreq();
+    int frequency = 24e6; // default value
 
     if (rtlsdr_set_center_freq(mDevice,frequency)<0)
 	{
@@ -161,7 +161,7 @@ void rtlsdrDriver::run () {
 
     mSeqHopping = new SequentialHopping();
     uint64_t center_freq=0, previous_freq=0, fft_size=0, slen=0;
-    uint64_t proxyFreq=0;
+    uint64_t proxy_freq=0, previous_proxy_freq=0;
     bool mustInvert;
 
     uint8_t *iq_buf = NULL;
@@ -172,37 +172,46 @@ void rtlsdrDriver::run () {
         // Introduce here the concept of segment per band (before jumping).
 
         center_freq = mSeqHopping->nextHop();
-
+        mustInvert=false;
 
         if (previous_freq != center_freq)
 		{
             previous_freq = center_freq;
-            mustInvert=false;
 
             // RTL-SDR as proxy of the down-converter
-            if ( mConverterEnabled && center_freq > MAX_FREQ_RTL_SDR)  {
+            if ( mConverterEnabled)  {
 
-                if(!converterTune(&mConverterDriver, center_freq/1e3, &proxyFreq, &mustInvert)){
+                if(!converterTune(&mConverterDriver, center_freq/1e3, &proxy_freq, &mustInvert)){
                     throw std::logic_error("Failed to converterTune");
                 }
 
-                printf("Tuning to %llu kHz, receiving on %llu kHz", center_freq/1e3, proxyFreq);
+                printf("Tuning to %llu Hz, receiving on %llu kHz\n", center_freq, proxy_freq);
 
-                int r = rtlsdr_set_center_freq(mDevice, proxyFreq*1e3);
-                if (r != 0)
-                    std::cerr << "Error: unable to set center frequency" << std::endl;
+                if (previous_proxy_freq != proxy_freq) {
+                    int r = rtlsdr_set_center_freq(mDevice, proxy_freq * 1e3);
+                    if (r != 0)
+                        std::cerr << "Error: unable to set center frequency" << std::endl;
 
+                    // Reset the buffer
+                    if (rtlsdr_reset_buffer(mDevice)<0)
+                        std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
+
+                    previous_proxy_freq = proxy_freq;
+                }
             // Native RTL-SDR
             } else {
 
                 int r = rtlsdr_set_center_freq(mDevice, center_freq);
                 if (r != 0)
                     std::cerr << "Error: unable to set center frequency" << std::endl;
+
+                // Reset the buffer
+                if (rtlsdr_reset_buffer(mDevice)<0)
+                    std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
             }
-            // Reset the buffer
-            if (rtlsdr_reset_buffer(mDevice)<0) {
-                std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
-            }
+
+
+
         }
 
         unsigned int current_fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
