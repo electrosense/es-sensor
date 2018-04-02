@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(es_sensor)
 
 # Set version
-SET (VERSION 2.0.0)
+SET (VERSION 1.1.5)
 add_definitions( -DAPP_VERSION=${VERSION})
 
 
