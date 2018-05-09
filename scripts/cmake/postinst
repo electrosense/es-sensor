@@ -1,0 +1,4 @@
+#!/bin/bash
+
+chmod +x /usr/share/electrosense/bin/es_sensor
+ln -fs /usr/share/electrosense/bin/es_sensor /usr/bin/es_sensor

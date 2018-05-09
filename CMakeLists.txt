@@ -60,7 +60,7 @@ macro(dpkg_arch VAR_NAME)
         endif(DPKG_PROGRAM)
 endmacro(dpkg_arch)
 
-set (CPACK_DEBIAN_PACKAGE_DEPENDS "mysql-client libliquid1d libssl1.1 libk5crypto3 libavro")
+set (CPACK_DEBIAN_PACKAGE_DEPENDS "libavro, libfftw3-3, zlib1g, liblzma5, libusb-1.0-0")
 
 include (InstallRequiredSystemLibraries)
 SET (CPACK_GENERATOR "DEB")
