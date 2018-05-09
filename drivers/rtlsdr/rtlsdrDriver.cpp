@@ -121,26 +121,27 @@ int rtlsdrDriver::open(std::string device) {
 
 
     std::cout << "[*] Initializing dongle with following configuration: " << std::endl;
-	std::cout << "\t Center Frequency: " << frequency << " Hz" << std::endl;
-	std::cout << "\t Sampling Rate: " << samplingRate << " samples/sec" << std::endl;
+    std::cout << "\t Center Frequency: " << frequency << " Hz" << std::endl;
+    std::cout << "\t Sampling Rate: " << samplingRate << " samples/sec" << std::endl;
     std::cout << "\t Gain: " << gain << " dB" << std::endl;
 
-    // Check if the converter is needed and if it's available.
-    if (ElectrosenseContext::getInstance()->getMaxFreq() > MAX_FREQ_RTL_SDR) {
+    // Check if the converter is present 
 
-        mConverterDriver.portPath = new char[CONVERTER_PATH.size() + 1];
-        std::copy(CONVERTER_PATH.begin(), CONVERTER_PATH.end(), mConverterDriver.portPath);
-        mConverterDriver.portPath[CONVERTER_PATH.size()] = '\0';
+    mConverterDriver.portPath = new char[CONVERTER_PATH.size() + 1];
+    std::copy(CONVERTER_PATH.begin(), CONVERTER_PATH.end(), mConverterDriver.portPath);
+    mConverterDriver.portPath[CONVERTER_PATH.size()] = '\0';
 
-        if(!converterInit(&mConverterDriver)){
-            std::cerr << "ERROR: Failed to open the converter" << std::endl;
-            throw std::logic_error("Failed to open the converter");
-        }
+    if(!converterInit(&mConverterDriver)){
+        std::cerr << "Warning: Failed to open the converter" << std::endl;
+        //throw std::logic_error("Failed to open the converter");
+    }
+    else {
         std::cout << "Converter has been detected properly" << std::endl;
         mConverterEnabled = true;
-
-        delete[] mConverterDriver.portPath;
     }
+
+    delete[] mConverterDriver.portPath;
+    
 
     return 1;
 
