@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.7)
-project(es_sensor)
+project(electrosense-sensor)
 
 # Set version
-SET (VERSION 1.1.5)
+SET (VERSION "1.1.5")
 add_definitions( -DAPP_VERSION=${VERSION})
+
+
+string(TIMESTAMP TIME_COMPILATION  "%Y-%m-%d %H:%M")	
+
+#SET (VERSION_COMPILATION "${VERSION} - ${TIME_COMPILATION}")
+#message("${VERSION_COMPILATION}")
 
 
 SET(CMAKE_CXX_STANDARD 11)
@@ -70,12 +76,12 @@ SET (CPACK_SET_DESTDIR "on")
 SET (CPACK_PACKAGING_INSTALL_PREFIX "/usr/share/")
 
 
-SET (VERSION 1.1.5-1)
+SET (PKG_VERSION ${VERSION}-1)
 # CPack version numbers for release tarball name.
 SET (CPACK_PACKAGE_VERSION_MAJOR 0)
 SET (CPACK_PACKAGE_VERSION_MINOR 0)
 SET (CPACK_PACKAGE_VERSION_PATCH 2)
-SET (CPACK_DEBIAN_PACKAGE_VERSION ${VERSION})
+SET (CPACK_DEBIAN_PACKAGE_VERSION ${PKG_VERSION})
 
 
 SET (CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
@@ -87,13 +93,11 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 	"${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/postinst"
 	"${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake/postrm")
 
-SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Electrosense is a software-defined radio to distributed spectrum monitoring.")
-SET (CPACK_PACKAGE_DESCRIPTION "Electrosense is a software-defined radio to distributed spectrum monitoring.")
+SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Electrosense is a software-defined radio for monitoring the spectrum collaboratively.")
+SET (CPACK_PACKAGE_DESCRIPTION "Electrosense is a software-defined radio for monitoring the spectrum collaboratively.")
 
 SET (CPACK_PACKAGE_CONTACT "Roberto Calvo-Palomino <roberto.calvo@imdea.org>")
-SET (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+SET (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${PKG_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
 SET (CPACK_COMPONENTS_ALL Libraries ApplicationData)
 include (CPack Documentation)
-
-

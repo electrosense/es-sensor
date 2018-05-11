@@ -147,7 +147,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:mn:u:p";
+    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:n:u:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {
@@ -168,6 +168,13 @@ void parse_args(int argc, char *argv[])
                 ElectrosenseContext::getInstance()->setClkCorrPerior(atoi(optarg));
                 break;
             case 'g':
+		if (atof(optarg)<-1) {		    
+		    std::cout <<  "Error usage: Gain can not be negative!\n" << std::endl;
+		    usage(argv[0]);
+		    break;
+		}
+
+
                 ElectrosenseContext::getInstance()->setGain(atof(optarg));
                 break;
             case 'y':
@@ -204,7 +211,7 @@ void parse_args(int argc, char *argv[])
                 ElectrosenseContext::getInstance()->setComprLevel(atol(optarg));
                 break;
             case 'm':
-                ElectrosenseContext::getInstance()->setTcpHosts(argstr);
+		ElectrosenseContext::getInstance()->setTcpHosts(argstr);
                 break;
             case 'n':
                 ElectrosenseContext::getInstance()->setTlsHosts(argstr);
@@ -235,7 +242,7 @@ void parse_args(int argc, char *argv[])
 int main( int argc, char* argv[] ) {
 
 
-    std::cout << std::endl << "Electrosense sensing application (" << getElectrosenseVersion() << ")" << std::endl
+    std::cout << std::endl << "Electrosense sensing application " << getElectrosenseVersion() << " (" << getElectrosenseTimeCompilation() << ")" << std::endl
               << std::endl;
 
     parse_args(argc, argv);

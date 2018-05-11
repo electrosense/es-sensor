@@ -13,5 +13,10 @@ std::string getElectrosenseVersion()
     return "@VERSION@";
 }
 
+std::string getElectrosenseTimeCompilation()
+{
+    return "@TIME_COMPILATION@";
+}
+
 
 #endif // VERSION_CONFIG_H
