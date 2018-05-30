@@ -1,21 +1,37 @@
 
-# es-sensor 2.0
+# es-sensor 
 
+Sensing software used in electrosense nodes (http://electrosense.org). If you are looking for an image ready to run in RaspBerryPi go directly [here](https://electrosense.org/join.html)
 
-## Requirements
+## Dependencies
 
+* Install the following packages
 
-avro-c-1.7.7 
+```
+$  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev libusb-1.0-0-dev librtlsd    r fftw-dev libssl-dev
+```
+
+* More details to Apache Avro are available at http://avro.apache.org. Releases may be downloaded from Apache mirror at http://www.apache.org/dyn/closer.cgi/avro/.
+
+```
+$ wget http://mirror.switch.ch/mirror/apache/dist/avro/avro-1.7.7/c/avro-c-1.7.7.tar.gz
+$ tar -zxf avro-c-1.7.7.tar.gz && rm avro-c-1.7.7.tar.gz
+$ cd avro-c-1.7.7/
+$ mkdir build && cd build/
+$ cmake ../ -DCMAKE_INSTALL_PREFIX=$PREFIX \ -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ make
+$ sudo make install
+```
 
 
 ```
-$  sudo apt install git-core cmake  librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev
+$  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev libusb-1.0-0-dev librtlsdr fftw-dev libssl-dev
 ```
 
 ## Compile
 
 ```
-$ git clone $REPO
+$ git clone https://github.com/electrosense/es-sensor 
 $ cmake .
 $ make 
 ```
@@ -25,11 +41,6 @@ $ make
 * Storage the measurements to a file
 
 ```
-./es_sensor 24000000 1600000000 -u /tmp/measurements.csv
+./es_sensor 24000000 1700000000 -u /tmp/measurements.csv
 ```
 
-* Send the spectrum measurements to the backend 
-
-```
-./es_sensor 24000000 1600000000 -n collector.electrosense.org:5001#certs/CA-Cert.pem#certs/Sensor-SSL-Cert.pem#certs/Sensor-SSL-SK.pem
-```
