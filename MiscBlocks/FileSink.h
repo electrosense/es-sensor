@@ -32,12 +32,13 @@
 #include <iomanip>
 
 #include "../drivers/Component.h"
+#include "../drivers/Communication.h"
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
 namespace electrosense {
 
-    class FileSink: public Component<SpectrumSegment*,SpectrumSegment*> {
+    class FileSink: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
 
     public:
 

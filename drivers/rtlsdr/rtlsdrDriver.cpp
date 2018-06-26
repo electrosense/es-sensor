@@ -152,6 +152,9 @@ int rtlsdrDriver::close () {
     return 1;
 }
 
+bool rtlsdrDriver::isRunning () {
+    return mRunning;
+};
 
 void rtlsdrDriver::run () {
 
@@ -183,6 +186,7 @@ void rtlsdrDriver::run () {
             if (mConverterEnabled)  {
 
                 if(!converterTune(&mConverterDriver, center_freq/1e3, &proxy_freq, &mustInvert)){
+                    mRunning = false;
                     throw std::logic_error("Failed to converterTune");
                 }
 
@@ -193,24 +197,32 @@ void rtlsdrDriver::run () {
                     previous_proxy_freq = proxy_freq;
 
                     int r = rtlsdr_set_center_freq(mDevice, proxy_freq * 1e3);
-                    if (r != 0)
+                    if (r != 0) {
                         std::cerr << "Error: unable to set center frequency" << std::endl;
+                        mRunning = false;
+                    }
 
                     // Reset the buffer
-                    if (rtlsdr_reset_buffer(mDevice)<0)
+                    if (rtlsdr_reset_buffer(mDevice)<0) {
                         std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
+                        mRunning = false;
+                    }
 
                 }
             // Native RTL-SDR
             } else {
 
                 int r = rtlsdr_set_center_freq(mDevice, center_freq);
-                if (r != 0)
+                if (r != 0) {
                     std::cerr << "Error: unable to set center frequency" << std::endl;
+                    mRunning = false;
+                }
 
                 // Reset the buffer
-                if (rtlsdr_reset_buffer(mDevice)<0)
+                if (rtlsdr_reset_buffer(mDevice)<0) {
                     std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
+                    mRunning = false;
+                }
             }
 
 
@@ -241,7 +253,10 @@ void rtlsdrDriver::run () {
 	    clock_gettime(CLOCK_REALTIME, &current_time);
 
         int r = rtlsdr_read_sync(mDevice, iq_buf, slen, &n_read);
-        if(r != 0 || (unsigned int)n_read != slen) fprintf(stderr, "WARNING: Synchronous read failed.\n");
+        if(r != 0 || (unsigned int)n_read != slen) {
+            fprintf(stderr, "WARNING: Synchronous read failed.\n");
+            mRunning = false;
+        }
 
         if(mustInvert){
             for(int i = 0; i<n_read; i+= 2){

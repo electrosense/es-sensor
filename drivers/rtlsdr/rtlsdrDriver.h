@@ -32,6 +32,7 @@
 
 #include "../Driver.h"
 #include "../Component.h"
+#include "../Communication.h"
 #include "rtlsdrDriver.h"
 #include "../../context/ElectrosenseContext.h"
 #include "../common/SequentialHopping.h"
@@ -45,7 +46,7 @@ namespace electrosense {
 
 
 
-    class rtlsdrDriver: public Driver, public Component<int, SpectrumSegment*> {
+    class rtlsdrDriver: public Driver, public Component, public Communication<int, SpectrumSegment*> {
 
     public:
 
@@ -62,6 +63,9 @@ namespace electrosense {
         // Stop
         int stop();
 
+        // Running
+        bool isRunning ();
+
         ReaderWriterQueue<int>* getQueueIn() { return NULL; }
         void setQueueIn (ReaderWriterQueue<int>* QueueIn ) {};
 
@@ -73,7 +77,6 @@ namespace electrosense {
 
     private:
 
-        const unsigned int MAX_FREQ_RTL_SDR = 1766000000;
         const std::string CONVERTER_PATH = "/dev/esenseconv";
 
         // Run the driver in the thread

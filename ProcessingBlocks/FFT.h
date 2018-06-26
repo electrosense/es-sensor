@@ -30,12 +30,13 @@
 #include <liquid/liquid.h>
 
 #include "../drivers/Component.h"
+#include "../drivers/Communication.h"
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
 namespace electrosense {
 
-    class FFT: public Component<SpectrumSegment*,SpectrumSegment*> {
+    class FFT: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
 
       public:
 

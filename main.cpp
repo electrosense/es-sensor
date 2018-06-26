@@ -30,6 +30,7 @@
 #include "context/ElectrosenseContext.h"
 
 #include "drivers/rtlsdr/rtlsdrDriver.h"
+#include "drivers/Component.h"
 
 #include "ProcessingBlocks/RemoveDC.h"
 #include "ProcessingBlocks/Windowing.h"
@@ -44,6 +45,8 @@
 
 void usage (char* name)
 {
+
+
 
     fprintf(stderr,
             "Usage:\n"
@@ -242,6 +245,9 @@ void parse_args(int argc, char *argv[])
 int main( int argc, char* argv[] ) {
 
 
+
+    std::vector<Component*> vComponents;
+
     std::cout << std::endl << "Electrosense sensing application " << getElectrosenseVersion() << " (" << getElectrosenseTimeCompilation() << ")" << std::endl
               << std::endl;
 
@@ -250,25 +256,29 @@ int main( int argc, char* argv[] ) {
 
     // RTL-SDR Driver
     auto* rtlDriver = new electrosense::rtlsdrDriver();
+    vComponents.push_back(rtlDriver);
 
     // RemoveDC Block
     auto* rdcBlock = new electrosense::RemoveDC();
     rdcBlock->setQueueIn( rtlDriver->getQueueOut() );
+    vComponents.push_back(rdcBlock);
 
     // Windowing
     auto* winBlock = new electrosense::Windowing(electrosense::Windowing::HAMMING);
     winBlock->setQueueIn(rdcBlock->getQueueOut());
+    vComponents.push_back(winBlock);
 
     // FFT
     auto* fftBlock = new electrosense::FFT();
     fftBlock->setQueueIn(winBlock->getQueueOut());
+    vComponents.push_back(fftBlock);
 
     // Averaging
     auto *avgBlock = new electrosense::Averaging();
     avgBlock->setQueueIn(fftBlock->getQueueOut());
+    vComponents.push_back(avgBlock);
 
     electrosense::FileSink *fileSink;
-    //fileSink->setQueueIn(avgBlock->getQueueOut());
 
     // Avro block
     electrosense::AvroSerialization *avroBlock;
@@ -287,9 +297,11 @@ int main( int argc, char* argv[] ) {
     if ( ElectrosenseContext::getInstance()->getTlsHosts().compare(DEFAULT_TLS_HOSTS) !=0 ) {
 
         avroBlock = new electrosense::AvroSerialization();
+        vComponents.push_back(avroBlock);
         avroBlock->setQueueIn(avgBlock->getQueueOut());
 
         transBlock = new electrosense::Transmission();
+        vComponents.push_back(transBlock);
         transBlock->setQueueIn(avroBlock->getQueueOut());
 
         avroBlock->start();
@@ -299,6 +311,8 @@ int main( int argc, char* argv[] ) {
     else if ( ElectrosenseContext::getInstance()->getOutputFileName().compare(DEFAULT_OUTPUT_FILENAME) !=0) {
 
         fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());
+        vComponents.push_back(fileSink);
+
         fileSink->setQueueIn(avgBlock->getQueueOut());
 
         fileSink->start();
@@ -313,12 +327,22 @@ int main( int argc, char* argv[] ) {
         std::cout << " " << fftBlock->getNameId() << " (OUT) : " << fftBlock->getQueueOut()->size_approx();
         std::cout << " " << avgBlock->getNameId() << " (OUT) : " << avgBlock->getQueueOut()->size_approx();
         std::cout << " " << fileSink->getNameId() << "  (IN) : " << fileSink->getQueueIn()->size_approx() << std::endl;
-         */
+        */
+
         sleep(1);
+        if ( ! rtlDriver->isRunning()) {
+            break;
+        }
+
     }
 
-    rtlDriver->stop();
+    std::cout << std::endl << "Shutdown components ..." << std::endl;
+    for (unsigned int i=0; i<vComponents.size(); i++) {
+        std::cout << "  - Stopping component: " << vComponents.at(i)->getNameId() << std::endl;
+        vComponents.at(i)->stop();
+    }
 
-    std::cout << "Ending properly!" << std::endl;
+
+    std::cout << "Sensing process finished correctly." << std::endl;
     return 0;
 }

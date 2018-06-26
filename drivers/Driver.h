@@ -44,7 +44,8 @@ public:
     virtual int close() = 0;
 
 
-
+    //
+    virtual bool isRunning() = 0;
 
 private:
 

@@ -30,12 +30,13 @@
 #include <liquid/liquid.h>
 
 #include "../drivers/Component.h"
+#include "../drivers/Communication.h"
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
 namespace electrosense {
 
-    class Averaging: public Component<SpectrumSegment*,SpectrumSegment*> {
+    class Averaging: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
 
     public:
 

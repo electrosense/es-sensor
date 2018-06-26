@@ -31,12 +31,13 @@
 
 
 #include "../drivers/Component.h"
+#include "../drivers/Communication.h"
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
 namespace electrosense {
 
-    class Windowing: public Component<SpectrumSegment*,SpectrumSegment*> {
+    class Windowing: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
 
     public:
 
