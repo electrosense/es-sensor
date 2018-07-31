@@ -41,7 +41,7 @@
 #include "MiscBlocks/Transmission.h"
 
 #include "MiscBlocks/FileSink.h"
-
+#include "MiscBlocks/IQSink.h"
 
 void usage (char* name)
 {
@@ -50,7 +50,7 @@ void usage (char* name)
 
     fprintf(stderr,
             "Usage:\n"
-                    "  %s min_freq max_freq\n"
+                    "  %s min_freq step_freq max_freq\n"
                     "  [-h]\n"
                     "  [-d <dev_index>]\n"
                     "  [-c <clk_off>] [-k <clk_corr_period>]\n"
@@ -68,6 +68,7 @@ void usage (char* name)
                     "Arguments:\n"
                     "  min_freq               Lower frequency bound in Hz\n"
                     "  max_freq               Upper frequency bound in Hz\n"
+                    "  step_freq              Step  frequency in Hz\n"
                     "\n"
                     "Options:\n"
                     "  -h                     Show this help\n"
@@ -258,6 +259,44 @@ int main( int argc, char* argv[] ) {
     auto* rtlDriver = new electrosense::rtlsdrDriver();
     vComponents.push_back(rtlDriver);
 
+    // IQSink
+    auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
+    iqSink->setQueueIn(rtlDriver->getQueueOut() );
+    vComponents.push_back(iqSink);
+
+    rtlDriver->open("0");
+    rtlDriver->start();
+    iqSink->start();
+
+
+
+    while(1)
+    {
+        sleep(1);
+        if ( ! rtlDriver->isRunning()) {
+            break;
+        }
+    }
+
+    sleep(5);
+    std::cout << std::endl << "Shutdown components ..." << std::endl;
+    for (unsigned int i=0; i<vComponents.size(); i++) {
+        std::cout << "  - Stopping component: " << vComponents.at(i)->getNameId() << std::endl;
+        vComponents.at(i)->stop();
+    }
+
+
+    std::cout << "Sensing process finished correctly." << std::endl;
+    return 0;
+
+
+
+
+
+
+
+
+
     // RemoveDC Block
     auto* rdcBlock = new electrosense::RemoveDC();
     rdcBlock->setQueueIn( rtlDriver->getQueueOut() );
@@ -307,7 +346,7 @@ int main( int argc, char* argv[] ) {
         avroBlock->start();
         transBlock->start();
     }
-    // Send spectrum measurements to a csv file.
+    // Send PSD measurements to a csv file.
     else if ( ElectrosenseContext::getInstance()->getOutputFileName().compare(DEFAULT_OUTPUT_FILENAME) !=0) {
 
         fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());

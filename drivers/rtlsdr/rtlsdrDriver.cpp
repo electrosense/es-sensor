@@ -141,7 +141,7 @@ int rtlsdrDriver::open(std::string device) {
     }
 
     delete[] mConverterDriver.portPath;
-    
+
 
     return 1;
 
@@ -152,15 +152,146 @@ int rtlsdrDriver::close () {
     return 1;
 }
 
+
+void timespec_diff(struct timespec *start, struct timespec *stop,
+                   struct timespec *result)
+{
+    if ((stop->tv_nsec - start->tv_nsec) < 0) {
+        result->tv_sec = stop->tv_sec - start->tv_sec - 1;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec + 1000000000;
+    } else {
+        result->tv_sec = stop->tv_sec - start->tv_sec;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec;
+    }
+
+    return;
+}
+
+typedef struct {
+    std::vector<std::complex<float>> * buf;
+    rtlsdr_dev_t * dev;
+    uint64_t center_frequency;
+    long sampling_rate;
+    long down_sampling;
+    long chunk_size;
+    long overlap_size;
+    unsigned int duration;
+    long* samples_read;
+    struct timespec init_time;
+    int sensor_id;
+
+    int sending_mode;   // 0: continuous | 1: interleave
+    int sending_state; // 0: sampling   | 1: waiting
+
+    int waiting_time;
+    int sampling_time;
+    int waiting_flow;
+    int sampling_flow;
+
+    ReaderWriterQueue<SpectrumSegment*>* queue;
+} callback_package_t;
+
+
+static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ctx) {
+
+    struct sched_param param;
+	param.sched_priority = 20;
+	pthread_setschedparam (pthread_self ( ) ,SCHED_FIFO,&param ) ;
+
+    struct timespec current_time;
+	clock_gettime(CLOCK_REALTIME, &current_time);
+
+    // Getting parameters
+    callback_package_t * cp_p=(callback_package_t *)ctx;
+	callback_package_t & cp=*cp_p;
+    std::vector<std::complex<float>> capbuf_raw_p = *cp.buf;
+    uint64_t center_freq = cp.center_frequency;
+    ReaderWriterQueue< SpectrumSegment*> *queue = cp.queue;
+    rtlsdr_dev_t * dev=cp.dev;
+
+
+    for (uint32_t t=0;t<len;t=t+2) {
+        capbuf_raw_p.push_back( std::complex<float>(buf[t] ,buf[t+1] ));
+	}
+
+    //std::cout << "[*] Sending segment " << current_time.tv_sec << "." << current_time.tv_nsec << std::endl;
+    SpectrumSegment *segment = new SpectrumSegment(-1000, current_time, center_freq,
+                                                   ElectrosenseContext::getInstance()->getSamplingRate(),
+                                                   capbuf_raw_p);
+
+    queue->enqueue(segment);
+    capbuf_raw_p.clear();
+
+    *cp.samples_read = *cp.samples_read + len;
+
+    struct timespec diff;
+	timespec_diff(&cp.init_time, &current_time, &diff);
+
+	if (cp.duration != 0 && (diff.tv_sec >= cp.duration))
+	{
+		rtlsdr_cancel_async(dev);
+		return;
+	}
+}
+
 bool rtlsdrDriver::isRunning () {
     return mRunning;
 };
 
 void rtlsdrDriver::run () {
 
+    mRunning = true;
+
+    if (0)
+        SyncSampling();
+
+    else{
+         // Reserving 262144 values for the buffer"
+        m_capbuf_raw.reserve( (256*1024)/2 );
+        mSeqHopping = new SequentialHopping();
+        long  samples_read = 0;
+
+        callback_package_t cp;
+        cp.buf=&m_capbuf_raw;
+        cp.center_frequency = mSeqHopping->nextHop();
+        cp.queue = mQueueOut;
+        cp.duration = ElectrosenseContext::getInstance()->getMinTimeRes();
+        cp.dev = mDevice;
+        struct timespec init_time;
+        clock_gettime(CLOCK_REALTIME, &init_time);
+        cp.init_time = init_time;
+        cp.samples_read = &samples_read;
+
+        int r = rtlsdr_set_center_freq(mDevice, cp.center_frequency);
+        if (r != 0) {
+            std::cerr << "Error: unable to set center frequency" << std::endl;
+            mRunning = false;
+        } else {
+            std::cout << "Center Frequency: "<< cp.center_frequency << " Hz" << std::endl;
+        }
+
+        // Reset the buffer
+        if (rtlsdr_reset_buffer(mDevice)<0) {
+            std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
+            mRunning = false;
+        }
+
+        rtlsdr_read_async(mDevice,capbuf_rtlsdr_callback,(void *)&cp,0,0);
+
+        m_capbuf_raw.clear();
+
+        std::cout << "[*] rtlsdrDriver: samples read: " << *cp.samples_read << std::endl;
+
+    }
+
+    mRunning = false;
+
+}
+
+void rtlsdrDriver::SyncSampling() {
+
     const int BULK_TRANSFER_MULTIPLE = 512;
 
-    mRunning = true;
     std::cout << "rtlsdrDriver::run" << std::endl;
 
     mSeqHopping = new SequentialHopping();
@@ -289,9 +420,6 @@ void rtlsdrDriver::run () {
             mQueueOut->enqueue(segment);
 
         }
-
-        //break;
-
     }
 
     delete(mSeqHopping);

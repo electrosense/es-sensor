@@ -36,7 +36,7 @@ set(SOURCE_FILES main.cpp drivers/Driver.h drivers/rtlsdr/rtlsdrDriver.cpp drive
         ProcessingBlocks/Windowing.cpp ProcessingBlocks/Windowing.h ProcessingBlocks/FFT.cpp ProcessingBlocks/FFT.h
         ProcessingBlocks/Averaging.cpp ProcessingBlocks/Averaging.h MiscBlocks/FileSink.cpp MiscBlocks/FileSink.h
         MiscBlocks/AvroSerialization.cpp MiscBlocks/AvroSerialization.h MiscBlocks/Transmission.cpp MiscBlocks/Transmission.h
-        misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h )
+        misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h MiscBlocks/IQSink.cpp MiscBlocks/IQSink.h)
 
 add_executable(es_sensor ${SOURCE_FILES})
 
