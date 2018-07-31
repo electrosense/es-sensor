@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(electrosense-sensor)
 
 # Set version
-SET (VERSION "1.1.5")
+SET (VERSION "1.1.6")
 add_definitions( -DAPP_VERSION=${VERSION})
 
 
