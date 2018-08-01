@@ -57,6 +57,10 @@ namespace electrosense {
 
         int stop();
 
+        void PSD();
+
+        void IQ();
+
         ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
         void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
 

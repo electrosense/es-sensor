@@ -46,33 +46,38 @@
 void usage (char* name)
 {
 
-
-
     fprintf(stderr,
             "Usage:\n"
-                    "  %s min_freq step_freq max_freq\n"
+                    "  %s min_freq max_freq\n"
                     "  [-h]\n"
                     "  [-d <dev_index>]\n"
                     "  [-c <clk_off>] [-k <clk_corr_period>]\n"
                     "  [-g <gain>]\n"
                     "  [-y <hopping_strategy>]\n"
                     "  [-s <samp_rate>]\n"
-                    "  [-f <log2_fft_size>] [-b <fft_batchlen>]\n"
-                    "  [-a <avg_factor>] [-o <soverlap>] [-q <freq_overlap>]\n"
+                    "  [-q <freq_overlap>]\n"
                     "  [-t <monitor_time>] [-r <min_time_res>]\n"
-                    "  [-w <window>]\n"
                     "  [-l <cmpr_level>]\n"
                     "  [-m <hostname1>:<portnumber1>[;<bandwidth1>],...,<hostnameN>:<portnumberN>[;bandwidthN]]\n"
                     "  [-n <hostname1>:<portnumber1>[;<bandwidth1>],...,<hostnameN>:<portnumberN>[;<bandwidthN>]#<ca_cert>#<cert>#<key>]\n"
+                    "  [-z <pipeline> ]\n"
+                    "\n"
+                    "  PSD Pipeline\n"
+                    "    [-f <log2_fft_size>] [-b <fft_batchlen>]\n"
+                    "    [-a <avg_factor>] [-o <soverlap>] \n"
+                    "    [-w <window>]\n"
+                    "\n"
+                    "  IQ Pipeline\n"
+                    "    [-b <absolute_time>]\n"
                     "\n"
                     "Arguments:\n"
                     "  min_freq               Lower frequency bound in Hz\n"
                     "  max_freq               Upper frequency bound in Hz\n"
-                    "  step_freq              Step  frequency in Hz\n"
                     "\n"
                     "Options:\n"
                     "  -h                     Show this help\n"
                     "  -d <dev_index>         RTL-SDR device index [default=%i]\n"
+                    "  -z <pipeline>          Pipeline process: PSD | IQ [default=%s]\n"
                     "  -c <clk_off>           Clock offset in PPM [default=%i]\n"
                     "  -k <clk_corr_period>   Clock correction period in seconds [default=%u]\n"
                     "                           i.e. perform frequency correction every 'clk_corr_period'\n"
@@ -84,17 +89,6 @@ void usage (char* name)
                     "                           random\n"
                     "                           similarity\n"
                     "  -s <samp_rate>         Sampling rate in Hz [default=%u]\n"
-                    "  -f <log2_fft_size>     Use FFT size of 2^'log2_fft_size' [default=%u]\n"
-                    "                           the resulting frequency resolution is\n"
-                    "                           'samp_rate'/(2^'log2_fft_size')\n"
-                    "  -b <fft_batchlen>      FFT batch length [default=%u]\n"
-                    "                           i.e. process FFTs in batches of length 'fft_batchlen'\n"
-                    "  -a <avg_factor>        Averaging factor [default=%u]\n"
-                    "                           i.e. average 'avg_factor' segments\n"
-                    "  -o <soverlap>          Segment overlap [default=%u]\n"
-                    "                           i.e. number of samples per segment that overlap\n"
-                    "                           The time to dwell in seconds at a given frequency is given by\n"
-                    "                           (((1<<'log2_fft_size')-'soverlap')*'avg_factor'+'soverlap')/'samp_rate'\n"
                     "  -q <freq_overlap>      Frequency overlapping factor [default=%.3f]\n"
                     "                           i.e. the frequency width is reduced from 'samp_rate' to\n"
                     "                           (1-'freq_overlap')*'samp_rate'\n"
@@ -120,18 +114,31 @@ void usage (char* name)
                     "                           true\n"
                     "                           false\n"
                     "  -u <filename>          Set filename output where Spectrum measurements are saved.\n"
+                    "\n"
+                    "PSD PIPELINE\n"
+                    "  -f <log2_fft_size>     Use FFT size of 2^'log2_fft_size' [default=%u]\n"
+                    "                           the resulting frequency resolution is\n"
+                    "                           'samp_rate'/(2^'log2_fft_size')\n"
+                    "  -b <fft_batchlen>      FFT batch length [default=%u]\n"
+                    "                           i.e. process FFTs in batches of length 'fft_batchlen'\n"
+                    "  -a <avg_factor>        Averaging factor [default=%u]\n"
+                    "                           i.e. average 'avg_factor' segments\n"
+                    "  -o <soverlap>          Segment overlap [default=%u]\n"
+                    "                           i.e. number of samples per segment that overlap\n"
+                    "                           The time to dwell in seconds at a given frequency is given by\n"
+                    "                           (((1<<'log2_fft_size')-'soverlap')*'avg_factor'+'soverlap')/'samp_rate'\n"
+                    "IQ PIPELINE\n"
+                    "  -b <absolute_time>     Absolute time when receiver should start sampling\n"
+                    "\n"
                     "",
             name,
             ElectrosenseContext::getInstance()->getDevIndex(),
+            ElectrosenseContext::getInstance()->getPipeline().c_str(),
             ElectrosenseContext::getInstance()->getClkOffset(),
             ElectrosenseContext::getInstance()->getClkCorrPerior(),
             ElectrosenseContext::getInstance()->getGain(),
             ElectrosenseContext::getInstance()->getHoppingStrategy().c_str(),
             ElectrosenseContext::getInstance()->getSamplingRate(),
-            ElectrosenseContext::getInstance()->getLog2FftSize(),
-            ElectrosenseContext::getInstance()->getFFTbatchlen(),
-            ElectrosenseContext::getInstance()->getAvgFactor(),
-            ElectrosenseContext::getInstance()->getSoverlap(),
             ElectrosenseContext::getInstance()->getFreqOverlap(),
             ElectrosenseContext::getInstance()->getMonitorTime(),
             ElectrosenseContext::getInstance()->getMinTimeRes(),
@@ -139,7 +146,11 @@ void usage (char* name)
             ElectrosenseContext::getInstance()->getComprLevel(),
             ElectrosenseContext::getInstance()->getTcpHosts().c_str(),
             ElectrosenseContext::getInstance()->getTlsHosts().c_str(),
-            ElectrosenseContext::getInstance()->isFifoPriority() ? "true" : "false");
+            ElectrosenseContext::getInstance()->isFifoPriority() ? "true" : "false",
+            ElectrosenseContext::getInstance()->getLog2FftSize(),
+            ElectrosenseContext::getInstance()->getFFTbatchlen(),
+            ElectrosenseContext::getInstance()->getAvgFactor(),
+            ElectrosenseContext::getInstance()->getSoverlap());
 
 
     exit(-1);
@@ -151,7 +162,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:n:u:p";
+    const char *options = "hd:z:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:n:u:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {
@@ -167,6 +178,9 @@ void parse_args(int argc, char *argv[])
                 break;
             case 'c':
                 ElectrosenseContext::getInstance()->setClkOff(atoi(optarg));
+                break;
+            case 'z':
+                ElectrosenseContext::getInstance()->setPipeline(argstr);
                 break;
             case 'k':
                 ElectrosenseContext::getInstance()->setClkCorrPerior(atoi(optarg));
@@ -235,6 +249,7 @@ void parse_args(int argc, char *argv[])
     // Non-option arguments
     if(optind+2 != argc) {
         usage(argv[0]);
+
     } else {
         ElectrosenseContext::getInstance()->setMinFreq(atoll(argv[optind]));
         ElectrosenseContext::getInstance()->setMaxFreq(atoll(argv[optind+1]));
@@ -260,13 +275,17 @@ int main( int argc, char* argv[] ) {
     vComponents.push_back(rtlDriver);
 
     // IQSink
-    auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
-    iqSink->setQueueIn(rtlDriver->getQueueOut() );
-    vComponents.push_back(iqSink);
+    //auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
+    //iqSink->setQueueIn(rtlDriver->getQueueOut() );
+    //vComponents.push_back(iqSink);
+
+    auto *avroBlock = new electrosense::AvroSerialization();
+    vComponents.push_back(avroBlock);
+    avroBlock->setQueueIn(rtlDriver->getQueueOut());
 
     rtlDriver->open("0");
     rtlDriver->start();
-    iqSink->start();
+    avroBlock->start();
 
 
 
@@ -320,7 +339,7 @@ int main( int argc, char* argv[] ) {
     electrosense::FileSink *fileSink;
 
     // Avro block
-    electrosense::AvroSerialization *avroBlock;
+    //electrosense::AvroSerialization *avroBlock;
 
     // Transmission
     electrosense::Transmission *transBlock;

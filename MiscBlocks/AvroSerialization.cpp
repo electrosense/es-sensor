@@ -34,7 +34,152 @@ namespace electrosense {
 
     void AvroSerialization::run() {
 
-        std::cout << "[*] AvroSerialization block running .... " << std::endl;
+        if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
+            PSD();
+        else
+            IQ();
+
+    }
+
+    void AvroSerialization::IQ() {
+
+        std::cout << "[*] AvroSerialization IQ block running .... " << std::endl;
+
+        char                 *json_schema;
+        const char           *json_schema_file = "schema/iq-spec.avsc";
+        avro_schema_t        avro_schema = NULL;
+
+
+        mRunning = true;
+        SpectrumSegment *segment;
+
+        if (mQueueIn == NULL || mQueueOut == NULL) {
+            throw std::logic_error("Queue[IN|OUT] are NULL!");
+        }
+
+        unsigned int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
+        unsigned int reduced_fft_size = (1 - ElectrosenseContext::getInstance()->getFreqOverlap())*(fft_size + 1);
+        float freq_res = ((float) ElectrosenseContext::getInstance()->getSamplingRate()) / fft_size;
+
+        // Read JSON schema from file
+        FILE *file = fopen(json_schema_file, "r");
+        if(file == NULL) {
+            fprintf(stderr, "[AvroSerialization] Failed to open file %s.\n", json_schema_file);
+            exit(1);
+        }
+        fseek(file, 0, SEEK_END);
+        unsigned int file_size = ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        json_schema = (char *) malloc(file_size+1);
+        size_t read = fread(json_schema, 1, file_size, file);
+        if(read != file_size) {
+            fprintf(stderr, "[AvroSerialization] File %s incompletely read.\n", json_schema_file);
+            exit(1);
+        }
+        json_schema[file_size] = '\0';
+        fclose(file);
+
+        // Parse JSON schema into C API's internal schema representation
+        avro_schema_from_json(json_schema, 0, &avro_schema, NULL);
+        if(avro_schema == NULL) {
+            fprintf(stderr, "[AvroSerialization] Failed to parse AVRO schema.\n");
+            exit(1);
+        }
+        // Release JSON schema
+        free(json_schema);
+
+        avro_value_iface_t *avro_iface = avro_generic_class_from_schema(avro_schema);
+
+        long long mac_eth0_dec;
+        get_mac_address_eth0(&mac_eth0_dec);
+
+        while (mRunning) {
+
+            if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+
+                unsigned int buf_size = ((12*4+segment->getIQSamples().size()*2*4) + 3) & ~0x03;
+                char* buf = (char *) malloc(buf_size);
+
+                // Create Avro memory writer
+                avro_writer_t avro_writer = avro_writer_memory(buf, buf_size);
+
+                // Create a value that is an instance of that schema
+                avro_value_t avro_value_sample;
+
+                avro_generic_value_new(avro_iface, &avro_value_sample);
+
+                // Sensing ID and timestamps (required)
+                avro_value_t avro_value_sen_id, avro_value_timesecs, avro_value_timemicrosecs;
+
+                avro_value_get_by_name(&avro_value_sample, "senId", &avro_value_sen_id, NULL);
+                avro_value_set_long(&avro_value_sen_id, mac_eth0_dec);
+
+                avro_value_get_by_name(&avro_value_sample, "timeSecs", &avro_value_timesecs, NULL);
+                avro_value_set_long(&avro_value_timesecs, segment->getTimeStamp().tv_sec);
+
+                avro_value_get_by_name(&avro_value_sample, "timeMicroSecs", &avro_value_timemicrosecs, NULL);
+                avro_value_set_long(&avro_value_timemicrosecs, segment->getTimeStamp().tv_nsec);
+
+
+                avro_value_t avro_value_sen_conf, avro_value_frontend_gain, avro_value_center_frequency,
+                        avro_value_sampling_rate, avro_value_ss_calibrated, avro_value_iq_calibrated,
+                        avro_value_noise_floor, avro_value_loss_rate, avro_value_measurements;
+
+                avro_value_get_by_name(&avro_value_sample, "senConf", &avro_value_sen_conf, NULL);
+
+                avro_value_get_by_name(&avro_value_sen_conf, "frontendGain", &avro_value_frontend_gain, NULL);
+                avro_value_set_float(&avro_value_frontend_gain, ElectrosenseContext::getInstance()->getGain());
+                avro_value_get_by_name(&avro_value_sen_conf, "centerFreq", &avro_value_center_frequency, NULL);
+                avro_value_set_long(&avro_value_center_frequency, segment->getCenterFrequency());
+                avro_value_get_by_name(&avro_value_sen_conf, "samplingRate", &avro_value_sampling_rate, NULL);
+                avro_value_set_int(&avro_value_sampling_rate, ElectrosenseContext::getInstance()->getSamplingRate());
+                avro_value_get_by_name(&avro_value_sen_conf, "sigStrengthCalibration", &avro_value_ss_calibrated, NULL);
+                avro_value_set_boolean(&avro_value_ss_calibrated, false);
+                avro_value_get_by_name(&avro_value_sen_conf, "iqBalanceCalibration", &avro_value_iq_calibrated, NULL);
+                avro_value_set_boolean(&avro_value_iq_calibrated, false);
+                avro_value_get_by_name(&avro_value_sen_conf, "estNoiseFloor", &avro_value_noise_floor, NULL);
+                avro_value_set_float(&avro_value_noise_floor, 0.0);
+
+
+                avro_value_get_by_name(&avro_value_sample, "measurements", &avro_value_measurements, NULL);
+
+                avro_value_t avro_value_element;
+
+                std::vector<std::complex<float>> iqsamples = segment->getIQSamples();
+
+                for(unsigned int i=0; i<iqsamples.size(); ++i) {
+                    size_t new_index;
+                    std::complex<float> sample = (segment->getIQSamples()[i]);
+
+                    avro_value_append(&avro_value_measurements, &avro_value_element, &new_index);
+                    avro_value_set_float(&avro_value_element, sample.real());
+
+                    avro_value_append(&avro_value_measurements, &avro_value_element, &new_index);
+                    avro_value_set_float(&avro_value_element, sample.imag());
+
+
+                }
+
+
+                avro_value_decref(&avro_value_element);
+                avro_value_write(avro_writer, &avro_value_sample);
+
+                segment->setAvroBuffer(buf, buf_size);
+
+                mQueueOut->enqueue(segment);
+
+                avro_value_decref(&avro_value_sample);
+                avro_writer_free(avro_writer);
+
+
+            }
+        }
+    }
+
+    void AvroSerialization::PSD() {
+
+        std::cout << "[*] AvroSerialization PSD block running .... " << std::endl;
 
         char                 *json_schema;
         const char           *json_schema_file = "schema/rtl-spec.avsc";

@@ -29,6 +29,7 @@
 #include <iostream>
 
 // Default values
+const std::string DEFAULT_PIPELINE = "PSD";
 const int DEFAULT_LOG2_FFT_SIZE = 8;
 const int DEFAULT_MONITOR_TIME  = 0;
 const int DEFAULT_MIN_TIME_RES  = 0;
@@ -73,6 +74,8 @@ public:
 
     void print();
 
+    std::string getPipeline() const;
+    void setPipeline(const std::string& pipeline);
     unsigned int getAvgFactor() const;
     void setAvgFactor(unsigned int avgFactor);
     unsigned int getClkCorrPerior() const;
@@ -101,6 +104,7 @@ public:
     void setMaxFreq(uint64_t maxFreq);
     uint64_t getMinFreq() const;
     void setMinFreq(uint64_t minFreq);
+
     unsigned int getMinTimeRes() const;
     void setMinTimeRes(unsigned int minTimeRes);
     unsigned int getMonitorTime() const;
@@ -125,6 +129,7 @@ public:
 private:
 
     ElectrosenseContext() {
+            setPipeline(DEFAULT_PIPELINE);
             setLog2FftSize(DEFAULT_LOG2_FFT_SIZE);
             setMonitorTime(DEFAULT_MONITOR_TIME);
             setMinTimeRes(DEFAULT_MIN_TIME_RES);
@@ -162,6 +167,8 @@ private:
 
     uint64_t mMinFreq;
     uint64_t mMaxFreq;
+
+
     unsigned int mClkCorrPerior;
     unsigned int mSamplingRate;
     unsigned int mLog2FftSize;
@@ -182,7 +189,7 @@ private:
     std::string  mOutputFileName;
     bool 		 mFifoPriority;
     unsigned int mBufferTime;
-
+    std::string  mPipeline;
 
 
     unsigned int mHoppingStrategyId;

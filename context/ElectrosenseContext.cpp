@@ -46,6 +46,7 @@ void ElectrosenseContext::print()
 
     std::cout << "Min Freq: " << getMinFreq() << std::endl;
     std::cout << "Max Freq: " << getMaxFreq() << std::endl;
+    std::cout << "Pipeline: " << getPipeline() << std::endl;
     std::cout << "Windowing: " << getWindowing() << std::endl;
     std::cout << "AvgFactor: " << getAvgFactor() << std::endl;
     std::cout << "SamplingRate: " << getSamplingRate() << std::endl;
@@ -70,6 +71,14 @@ void ElectrosenseContext::print()
     std::cout << "FFT Computation: " << "CPU" << std::endl;
 #endif
 
+}
+
+std::string ElectrosenseContext::getPipeline() const {
+    return mPipeline;
+}
+
+void ElectrosenseContext::setPipeline(const std::string &pipeline) {
+    mPipeline = pipeline;
 }
 unsigned int ElectrosenseContext::getAvgFactor() const {
     return mAvgFactor;
@@ -215,6 +224,7 @@ uint64_t ElectrosenseContext::getMinFreq() const {
 void ElectrosenseContext::setMinFreq(uint64_t minFreq) {
     mMinFreq = minFreq;
 }
+
 
 unsigned int ElectrosenseContext::getMinTimeRes() const {
     return mMinTimeRes;
