@@ -53,8 +53,10 @@ namespace electrosense {
                 std::vector<std::complex<float>> iq = segment->getIQSamples();
 
                 for (unsigned int i=0; i<iq.size(); i++) {
-                      float re = (iq[i].real() -127.0)/128.0;
-                      float im = (iq[i].imag() -127.0)/128.0;
+                    //float re = (iq[i].real() -127.0)/128.0;
+                    // float im = (iq[i].imag() -127.0)/128.0;
+                    float re = (iq[i].real());
+                    float im = (iq[i].imag());
 
 
                     mOutputFile.write(reinterpret_cast<const char *>( &re ), sizeof(float));

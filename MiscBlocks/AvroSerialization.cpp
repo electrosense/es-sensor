@@ -57,9 +57,6 @@ namespace electrosense {
             throw std::logic_error("Queue[IN|OUT] are NULL!");
         }
 
-        unsigned int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
-        unsigned int reduced_fft_size = (1 - ElectrosenseContext::getInstance()->getFreqOverlap())*(fft_size + 1);
-        float freq_res = ((float) ElectrosenseContext::getInstance()->getSamplingRate()) / fft_size;
 
         // Read JSON schema from file
         FILE *file = fopen(json_schema_file, "r");
@@ -161,7 +158,6 @@ namespace electrosense {
 
                 }
 
-
                 avro_value_decref(&avro_value_element);
                 avro_value_write(avro_writer, &avro_value_sample);
 
@@ -172,9 +168,13 @@ namespace electrosense {
                 avro_value_decref(&avro_value_sample);
                 avro_writer_free(avro_writer);
 
-
-            }
+            } else
+                usleep(1);
         }
+
+        avro_value_iface_decref(avro_iface);
+        avro_schema_decref(avro_schema);
+
     }
 
     void AvroSerialization::PSD() {

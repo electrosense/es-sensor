@@ -41,12 +41,25 @@ namespace electrosense {
         std::cout << "[*] Transmission block running .... " << std::endl;
 
         TLS_Connection *tls_con = NULL;
-        tls_con = (TLS_Connection *) malloc(sizeof(TLS_Connection *));
+        TCP_Connection * tcp_con = NULL;
 
-        tls_init_p(&tls_con, NULL, TLSv1_1_client_method(),
-                 mCACert.c_str(), mCert.c_str(), mKey.c_str(), mHost.c_str(), atoi(mPort.c_str()));
+        if (mConnection == ConnectionType::TLS) {
 
-        while(!tls_connect(tls_con) < 0) {sleep(1);}
+            tls_con = (TLS_Connection *) malloc(sizeof(TLS_Connection *));
+
+            tls_init_p(&tls_con, NULL, TLSv1_1_client_method(),
+                       mCACert.c_str(), mCert.c_str(), mKey.c_str(), mHost.c_str(), atoi(mPort.c_str()));
+
+            while (!tls_connect(tls_con) < 0) { sleep(1); }
+
+        } else if (mConnection == ConnectionType::TCP) {
+
+            tcp_con = (TCP_Connection *) malloc(sizeof(TCP_Connection *));
+            tcp_init_p(&tcp_con, mHost.c_str(), atoi(mPort.c_str()));
+
+            while (!tcp_connect(tcp_con) < 0) { sleep(1); }
+
+        }
 
         unsigned int prev_data_size = 0, payload_size, packet_size = 0;
         unsigned int *buf = NULL;
@@ -83,12 +96,24 @@ namespace electrosense {
                     prev_data_size = data_size;
                 }
 
-                buf[0] = htonl(data_size);
-                buf[1] = htonl(reduced_fft_size);
+                std::cout << "Sending packet ..." << data_size << " | " << packet_size <<   std::endl;
 
-                memcpy(buf+2, buffer, data_size);
 
-                tls_write(tls_con, buf, packet_size);
+                if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 ) {
+                    buf[0] = htonl(data_size);
+                    buf[1] = htonl(reduced_fft_size);
+                    memcpy(buf + 2, buffer, data_size);
+                } else { // IQ
+                    buf[0] = htonl(data_size);
+                    memcpy(buf + 1, buffer, data_size);
+                }
+
+
+
+                if (mConnection == ConnectionType::TLS)
+                    tls_write(tls_con, buf, packet_size);
+                else
+                    tcp_write(tcp_con, buf, packet_size);
 
                 // Free memory of the segment
                 delete(segment);
@@ -98,8 +123,14 @@ namespace electrosense {
                 usleep(1);
         }
 
-        tls_disconnect(tls_con);
-        tls_release(tls_con);
+        if (mConnection == ConnectionType::TLS) {
+            tls_disconnect(tls_con);
+            tls_release(tls_con);
+        } else {
+            tcp_disconnect(tcp_con);
+            tcp_release(tcp_con);
+        }
+
 
     }
 
@@ -155,6 +186,13 @@ namespace electrosense {
             std::cout << "   Cert:  " << mCert << std::endl;
             std::cout << "   Key:   " << mKey << std::endl;
 
+            if (mCACert.size() == 0) {
+                std::cout << "TCP Connection" << std::endl;
+                mConnection = ConnectionType::TCP;
+            }else{
+                std::cout << "TLS Connection" << std::endl;
+                mConnection = ConnectionType::TLS;
+            }
 
 
         }

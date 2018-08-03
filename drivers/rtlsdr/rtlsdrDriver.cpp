@@ -242,7 +242,7 @@ void rtlsdrDriver::run () {
 
     mRunning = true;
 
-    if (0)
+    if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
         SyncSampling();
 
     else{

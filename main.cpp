@@ -261,119 +261,93 @@ void parse_args(int argc, char *argv[])
 int main( int argc, char* argv[] ) {
 
 
+    std::vector<Component *> vComponents;
 
-    std::vector<Component*> vComponents;
-
-    std::cout << std::endl << "Electrosense sensing application " << getElectrosenseVersion() << " (" << getElectrosenseTimeCompilation() << ")" << std::endl
+    std::cout << std::endl << "Electrosense sensing application " << getElectrosenseVersion() << " ("
+              << getElectrosenseTimeCompilation() << ")" << std::endl
               << std::endl;
 
     parse_args(argc, argv);
     ElectrosenseContext::getInstance()->print();
 
+    electrosense::RemoveDC *rdcBlock;
+    electrosense::Windowing* winBlock;
+    electrosense::FFT *fftBlock;
+    electrosense::Averaging *avgBlock;
+
     // RTL-SDR Driver
-    auto* rtlDriver = new electrosense::rtlsdrDriver();
+    auto *rtlDriver = new electrosense::rtlsdrDriver();
     vComponents.push_back(rtlDriver);
 
-    // IQSink
-    //auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
-    //iqSink->setQueueIn(rtlDriver->getQueueOut() );
-    //vComponents.push_back(iqSink);
-
-    auto *avroBlock = new electrosense::AvroSerialization();
-    vComponents.push_back(avroBlock);
-    avroBlock->setQueueIn(rtlDriver->getQueueOut());
-
     rtlDriver->open("0");
-    rtlDriver->start();
-    avroBlock->start();
-
-
-
-    while(1)
-    {
-        sleep(1);
-        if ( ! rtlDriver->isRunning()) {
-            break;
-        }
-    }
-
-    sleep(5);
-    std::cout << std::endl << "Shutdown components ..." << std::endl;
-    for (unsigned int i=0; i<vComponents.size(); i++) {
-        std::cout << "  - Stopping component: " << vComponents.at(i)->getNameId() << std::endl;
-        vComponents.at(i)->stop();
-    }
-
-
-    std::cout << "Sensing process finished correctly." << std::endl;
-    return 0;
-
-
-
-
-
-
-
-
 
     // RemoveDC Block
-    auto* rdcBlock = new electrosense::RemoveDC();
-    rdcBlock->setQueueIn( rtlDriver->getQueueOut() );
+    rdcBlock = new electrosense::RemoveDC();
+    rdcBlock->setQueueIn(rtlDriver->getQueueOut());
     vComponents.push_back(rdcBlock);
 
-    // Windowing
-    auto* winBlock = new electrosense::Windowing(electrosense::Windowing::HAMMING);
-    winBlock->setQueueIn(rdcBlock->getQueueOut());
-    vComponents.push_back(winBlock);
 
-    // FFT
-    auto* fftBlock = new electrosense::FFT();
-    fftBlock->setQueueIn(winBlock->getQueueOut());
-    vComponents.push_back(fftBlock);
+    if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
 
-    // Averaging
-    auto *avgBlock = new electrosense::Averaging();
-    avgBlock->setQueueIn(fftBlock->getQueueOut());
-    vComponents.push_back(avgBlock);
+        // Windowing
+        winBlock = new electrosense::Windowing(electrosense::Windowing::HAMMING);
+        winBlock->setQueueIn(rdcBlock->getQueueOut());
+        vComponents.push_back(winBlock);
 
-    electrosense::FileSink *fileSink;
+        // FFT
+        fftBlock = new electrosense::FFT();
+        fftBlock->setQueueIn(winBlock->getQueueOut());
+        vComponents.push_back(fftBlock);
 
-    // Avro block
-    //electrosense::AvroSerialization *avroBlock;
+        // Averaging
+        avgBlock = new electrosense::Averaging();
+        avgBlock->setQueueIn(fftBlock->getQueueOut());
+        vComponents.push_back(avgBlock);
 
-    // Transmission
-    electrosense::Transmission *transBlock;
+    } else {
+        // Future blocks to process IQ data
+    }
 
-    rtlDriver->open("0");
-    rtlDriver->start();
-    rdcBlock->start();
-    winBlock->start();
-    fftBlock->start();
-    avgBlock->start();
 
-    // Send spectrum measurements to the server.
+
+    // Send measurements to the server.
     if ( ElectrosenseContext::getInstance()->getTlsHosts().compare(DEFAULT_TLS_HOSTS) !=0 ) {
 
-        avroBlock = new electrosense::AvroSerialization();
+        auto *avroBlock = new electrosense::AvroSerialization();
         vComponents.push_back(avroBlock);
-        avroBlock->setQueueIn(avgBlock->getQueueOut());
 
-        transBlock = new electrosense::Transmission();
+        if ( ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0)
+            avroBlock->setQueueIn(avgBlock->getQueueOut());
+        else if ( ElectrosenseContext::getInstance()->getPipeline().compare("IQ") == 0)
+            avroBlock->setQueueIn(rdcBlock->getQueueOut());
+
+
+        auto* transBlock = new electrosense::Transmission();
         vComponents.push_back(transBlock);
         transBlock->setQueueIn(avroBlock->getQueueOut());
-
-        avroBlock->start();
-        transBlock->start();
     }
-    // Send PSD measurements to a csv file.
+    // Send measurements to a csv file.
     else if ( ElectrosenseContext::getInstance()->getOutputFileName().compare(DEFAULT_OUTPUT_FILENAME) !=0) {
 
-        fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());
-        vComponents.push_back(fileSink);
+        if ( ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
+            auto* fileSink = new electrosense::FileSink(ElectrosenseContext::getInstance()->getOutputFileName());
+            vComponents.push_back(fileSink);
 
-        fileSink->setQueueIn(avgBlock->getQueueOut());
+            fileSink->setQueueIn(avgBlock->getQueueOut());
 
-        fileSink->start();
+        } else if ( ElectrosenseContext::getInstance()->getPipeline().compare("IQ") == 0) {
+            auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
+            vComponents.push_back(iqSink);
+            iqSink->setQueueIn(rdcBlock->getQueueOut());
+
+        }
+
+    }
+
+    std::cout << std::endl << "Starting components ..." << std::endl;
+    for (unsigned int i=0; i<vComponents.size(); i++) {
+        std::cout << "  - Starting component: " << vComponents.at(i)->getNameId() << std::endl;
+        vComponents.at(i)->start();
     }
 
     while(1)

@@ -54,7 +54,7 @@ namespace electrosense {
         ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return NULL; };
         void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
 
-
+        enum ConnectionType { TCP=0, TLS};
 
     private:
 
@@ -73,6 +73,8 @@ namespace electrosense {
         std::string mCACert;
         std::string mCert;
         std::string mKey;
+
+        ConnectionType mConnection;
 
 
     };
