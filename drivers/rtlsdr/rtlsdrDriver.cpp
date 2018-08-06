@@ -209,7 +209,6 @@ static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ct
     ReaderWriterQueue< SpectrumSegment*> *queue = cp.queue;
     rtlsdr_dev_t * dev=cp.dev;
 
-
     for (uint32_t t=0;t<len;t=t+2) {
         capbuf_raw_p.push_back( std::complex<float>(buf[t] ,buf[t+1] ));
 	}
@@ -244,7 +243,6 @@ void rtlsdrDriver::run () {
 
     if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
         SyncSampling();
-
     else{
          // Reserving 262144 values for the buffer"
         m_capbuf_raw.reserve( (256*1024)/2 );

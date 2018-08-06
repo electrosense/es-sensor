@@ -34,12 +34,20 @@ namespace electrosense {
 
     void AvroSerialization::run() {
 
-        if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
+        if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0 )
             PSD();
         else
             IQ();
 
     }
+
+#define check_i(call) \
+    do { \
+        if ((call) != 0) { \
+            fprintf(stderr, "Error: %s\n", avro_strerror()); \
+            exit(EXIT_FAILURE); \
+        } \
+} while (0)
 
     void AvroSerialization::IQ() {
 
@@ -95,8 +103,16 @@ namespace electrosense {
 
             if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
-                unsigned int buf_size = ((12*4+segment->getIQSamples().size()*2*4) + 3) & ~0x03;
+                unsigned int s = 4096;
+
+                unsigned int buf_size = ((s+segment->getIQSamples().size()*2*4) + 3) & ~0x03;
                 char* buf = (char *) malloc(buf_size);
+                if(buf==NULL) {
+                    fprintf(stderr, "[AvroSerialization] Error while allocating memory\n");
+                    exit(-1);
+                }
+                else
+                    std::cout << "buf_size: " << buf_size << " bytes " << std::endl;
 
                 // Create Avro memory writer
                 avro_writer_t avro_writer = avro_writer_memory(buf, buf_size);
@@ -107,7 +123,11 @@ namespace electrosense {
                 avro_generic_value_new(avro_iface, &avro_value_sample);
 
                 // Sensing ID and timestamps (required)
-                avro_value_t avro_value_sen_id, avro_value_timesecs, avro_value_timemicrosecs;
+                avro_value_t avro_value_lossrate, avro_value_sen_id, avro_value_timesecs, avro_value_timemicrosecs,
+                        avro_value_sen_env, avro_value_sen_temp, avro_value_sen_latitude,
+                        avro_value_sen_longitude, avro_value_sen_altitude, avro_value_sentemp_branch, avro_value_latitude_branch,
+                        avro_value_longitude_branch, avro_value_altitude_branch;
+
 
                 avro_value_get_by_name(&avro_value_sample, "senId", &avro_value_sen_id, NULL);
                 avro_value_set_long(&avro_value_sen_id, mac_eth0_dec);
@@ -116,28 +136,99 @@ namespace electrosense {
                 avro_value_set_long(&avro_value_timesecs, segment->getTimeStamp().tv_sec);
 
                 avro_value_get_by_name(&avro_value_sample, "timeMicroSecs", &avro_value_timemicrosecs, NULL);
-                avro_value_set_long(&avro_value_timemicrosecs, segment->getTimeStamp().tv_nsec);
+                avro_value_set_int(&avro_value_timemicrosecs, segment->getTimeStamp().tv_nsec);
+
+
+                check_i(avro_value_get_by_name(&avro_value_sample, "senEnv", &avro_value_sen_env, NULL));
+                check_i(avro_value_get_by_name(&avro_value_sen_env, "senTemp", &avro_value_sen_temp, NULL));
+                check_i(avro_value_set_branch(&avro_value_sen_temp, 0, &avro_value_sentemp_branch));
+                check_i(avro_value_set_null(&avro_value_sentemp_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_env, "senLatitude", &avro_value_sen_latitude, NULL));
+                check_i(avro_value_set_branch(&avro_value_sen_latitude, 0, &avro_value_latitude_branch));
+                check_i(avro_value_set_null(&avro_value_latitude_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_env, "senLongitude", &avro_value_sen_longitude, NULL));
+                check_i(avro_value_set_branch(&avro_value_sen_longitude, 0, &avro_value_longitude_branch));
+                check_i(avro_value_set_null(&avro_value_longitude_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_env, "senAltitude", &avro_value_sen_altitude, NULL));
+                check_i(avro_value_set_branch(&avro_value_sen_altitude, 0, &avro_value_altitude_branch));
+                check_i(avro_value_set_null(&avro_value_altitude_branch));
 
 
                 avro_value_t avro_value_sen_conf, avro_value_frontend_gain, avro_value_center_frequency,
                         avro_value_sampling_rate, avro_value_ss_calibrated, avro_value_iq_calibrated,
-                        avro_value_noise_floor, avro_value_loss_rate, avro_value_measurements;
+                        avro_value_noise_floor, avro_value_hopping_strategy, avro_value_antenna_gain,
+                        avro_value_freq_corr, avro_value_antenna_id, avro_value_rfsync, avro_value_system_sync,
+                        avro_value_extra_conf, avro_value_obfuscation,avro_value_branch;
 
-                avro_value_get_by_name(&avro_value_sample, "senConf", &avro_value_sen_conf, NULL);
+                check_i(avro_value_get_by_name(&avro_value_sample, "senConf", &avro_value_sen_conf, NULL));
 
-                avro_value_get_by_name(&avro_value_sen_conf, "frontendGain", &avro_value_frontend_gain, NULL);
-                avro_value_set_float(&avro_value_frontend_gain, ElectrosenseContext::getInstance()->getGain());
-                avro_value_get_by_name(&avro_value_sen_conf, "centerFreq", &avro_value_center_frequency, NULL);
-                avro_value_set_long(&avro_value_center_frequency, segment->getCenterFrequency());
-                avro_value_get_by_name(&avro_value_sen_conf, "samplingRate", &avro_value_sampling_rate, NULL);
-                avro_value_set_int(&avro_value_sampling_rate, ElectrosenseContext::getInstance()->getSamplingRate());
-                avro_value_get_by_name(&avro_value_sen_conf, "sigStrengthCalibration", &avro_value_ss_calibrated, NULL);
-                avro_value_set_boolean(&avro_value_ss_calibrated, false);
-                avro_value_get_by_name(&avro_value_sen_conf, "iqBalanceCalibration", &avro_value_iq_calibrated, NULL);
-                avro_value_set_boolean(&avro_value_iq_calibrated, false);
-                avro_value_get_by_name(&avro_value_sen_conf, "estNoiseFloor", &avro_value_noise_floor, NULL);
-                avro_value_set_float(&avro_value_noise_floor, 0.0);
 
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "hoppingStrategy", &avro_value_hopping_strategy, NULL));
+                check_i(avro_value_set_branch(&avro_value_hopping_strategy, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "antennaGain", &avro_value_antenna_gain, NULL));
+                check_i(avro_value_set_branch(&avro_value_antenna_gain, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "frontendGain", &avro_value_frontend_gain, NULL));
+                check_i(avro_value_set_branch(&avro_value_frontend_gain, 1, &avro_value_branch));
+                check_i(avro_value_set_float(&avro_value_branch, ElectrosenseContext::getInstance()->getGain()));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "samplingRate", &avro_value_sampling_rate, NULL));
+                check_i(avro_value_set_branch(&avro_value_sampling_rate, 1, &avro_value_branch));
+                check_i(avro_value_set_int(&avro_value_branch, ElectrosenseContext::getInstance()->getSamplingRate()));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "centerFreq", &avro_value_center_frequency, NULL));
+                check_i(avro_value_set_long(&avro_value_center_frequency, (uint64_t)segment->getCenterFrequency()));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "frequencyCorrectionFactor", &avro_value_freq_corr, NULL));
+                check_i(avro_value_set_branch(&avro_value_freq_corr, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "antennaId", &avro_value_antenna_id, NULL));
+                check_i(avro_value_set_branch(&avro_value_antenna_id, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "rfSync", &avro_value_rfsync, NULL));
+                check_i(avro_value_set_branch(&avro_value_rfsync, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "systemSync", &avro_value_system_sync, NULL));
+                check_i(avro_value_set_branch(&avro_value_system_sync, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "sigStrengthCalibration", &avro_value_ss_calibrated, NULL));
+                check_i(avro_value_set_branch(&avro_value_ss_calibrated, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "iqBalanceCalibration", &avro_value_iq_calibrated, NULL));
+                check_i(avro_value_set_branch(&avro_value_iq_calibrated, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "estNoiseFloor", &avro_value_noise_floor, NULL));
+                check_i(avro_value_set_branch(&avro_value_noise_floor, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sen_conf, "extraConf", &avro_value_extra_conf, NULL));
+                check_i(avro_value_set_branch(&avro_value_extra_conf, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sample, "lossRate", &avro_value_lossrate, NULL));
+                check_i(avro_value_set_branch(&avro_value_lossrate, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+                check_i(avro_value_get_by_name(&avro_value_sample, "obfuscation", &avro_value_obfuscation, NULL));
+                check_i(avro_value_set_branch(&avro_value_obfuscation, 0, &avro_value_branch));
+                check_i(avro_value_set_null(&avro_value_branch));
+
+
+
+                avro_value_t avro_value_measurements;
 
                 avro_value_get_by_name(&avro_value_sample, "measurements", &avro_value_measurements, NULL);
 
@@ -155,11 +246,13 @@ namespace electrosense {
                     avro_value_append(&avro_value_measurements, &avro_value_element, &new_index);
                     avro_value_set_float(&avro_value_element, sample.imag());
 
-
                 }
 
                 avro_value_decref(&avro_value_element);
+
                 avro_value_write(avro_writer, &avro_value_sample);
+
+                std::cout << "Size Writer: " << avro_writer_tell(avro_writer) << std::endl;
 
                 segment->setAvroBuffer(buf, buf_size);
 
@@ -324,10 +417,13 @@ namespace electrosense {
                         exit(1);
                     }
                     avro_value_set_float(&avro_value_element, s);
+
                 }
 
                 avro_value_decref(&avro_value_element);
                 avro_value_write(avro_writer, &avro_value_sample);
+
+                std::cout << "Size Writer: " << avro_writer_tell(avro_writer) << std::endl;
 
                 segment->setAvroBuffer(buf, buf_size);
 

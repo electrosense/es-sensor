@@ -90,25 +90,29 @@ namespace electrosense {
                     // The payload consists of the compressed data plus some padding, guaranteeing the packet size
                     // to be a multiple of 4
                     payload_size = (data_size + 3) & ~0x03;
-                    packet_size = 2*sizeof(uint32_t) + payload_size;
+                    if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0 )
+                        packet_size = 2*sizeof(uint32_t) + payload_size;
+                    else {
+                        packet_size = 1 * sizeof(uint32_t) + payload_size;
+                    }
+
                     buf = (uint32_t *) realloc(buf, packet_size);
-                    memset(buf, 0, packet_size);
                     prev_data_size = data_size;
                 }
 
-                std::cout << "Sending packet ..." << data_size << " | " << packet_size <<   std::endl;
-
+                memset(buf, 0, packet_size);
 
                 if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 ) {
+
                     buf[0] = htonl(data_size);
                     buf[1] = htonl(reduced_fft_size);
                     memcpy(buf + 2, buffer, data_size);
+
                 } else { // IQ
+
                     buf[0] = htonl(data_size);
                     memcpy(buf + 1, buffer, data_size);
                 }
-
-
 
                 if (mConnection == ConnectionType::TLS)
                     tls_write(tls_con, buf, packet_size);
@@ -193,6 +197,7 @@ namespace electrosense {
                 std::cout << "TLS Connection" << std::endl;
                 mConnection = ConnectionType::TLS;
             }
+
 
 
         }
