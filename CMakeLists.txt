@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.7)
 project(electrosense-sensor)
 
 # Set version
-SET (VERSION "1.1.6")
-add_definitions( -DAPP_VERSION=${VERSION})
+SET (VERSION "1.1.7")
+SET (DEBVERSION "dev1")
+add_definitions( -DAPP_VERSION="${VERSION}-${DEBVERSION}")
 
 
 string(TIMESTAMP TIME_COMPILATION  "%Y-%m-%d %H:%M")	
@@ -76,7 +77,7 @@ SET (CPACK_SET_DESTDIR "on")
 SET (CPACK_PACKAGING_INSTALL_PREFIX "/usr/share/")
 
 
-SET (PKG_VERSION ${VERSION}-1)
+SET (PKG_VERSION ${VERSION}-${DEBVERSION})
 # CPack version numbers for release tarball name.
 SET (CPACK_PACKAGE_VERSION_MAJOR 0)
 SET (CPACK_PACKAGE_VERSION_MINOR 0)

@@ -10,7 +10,7 @@
 
 std::string getElectrosenseVersion()
 {
-    return "@VERSION@";
+    return "@VERSION@-@DEBVERSION@";
 }
 
 std::string getElectrosenseTimeCompilation()

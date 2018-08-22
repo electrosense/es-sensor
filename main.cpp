@@ -26,6 +26,8 @@
 #include <vector>
 #include <unistd.h>
 
+#include <signal.h>
+
 #include "generated/version_config.h"
 #include "context/ElectrosenseContext.h"
 
@@ -257,11 +259,32 @@ void parse_args(int argc, char *argv[])
 
 }
 
+std::vector<Component *> vComponents;
+
+void finish_ok () {
+
+    std::cout << std::endl << "Shutdown components ..." << std::endl;
+    for (unsigned int i=0; i<vComponents.size(); i++) {
+            std::cout << "  - Stopping component: " << vComponents.at(i)->getNameId() << std::endl;
+        vComponents.at(i)->stop();
+    }
+
+    std::cout << "Sensing process finished correctly." << std::endl;
+
+}
+
+void signal_callback_handler(int signum) {
+
+	finish_ok();
+
+	exit(signum);
+}
+
 
 int main( int argc, char* argv[] ) {
 
-
-    std::vector<Component *> vComponents;
+    signal(SIGINT, signal_callback_handler);
+    signal(SIGTERM, signal_callback_handler);
 
     std::cout << std::endl << "Electrosense sensing application " << getElectrosenseVersion() << " ("
               << getElectrosenseTimeCompilation() << ")" << std::endl
@@ -281,13 +304,13 @@ int main( int argc, char* argv[] ) {
 
     rtlDriver->open("0");
 
-    // RemoveDC Block
-    rdcBlock = new electrosense::RemoveDC();
-    rdcBlock->setQueueIn(rtlDriver->getQueueOut());
-    vComponents.push_back(rdcBlock);
-
 
     if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
+
+        // RemoveDC Block
+        rdcBlock = new electrosense::RemoveDC();
+        rdcBlock->setQueueIn(rtlDriver->getQueueOut());
+        vComponents.push_back(rdcBlock);
 
         // Windowing
         winBlock = new electrosense::Windowing(electrosense::Windowing::HAMMING);
@@ -338,7 +361,7 @@ int main( int argc, char* argv[] ) {
         } else if ( ElectrosenseContext::getInstance()->getPipeline().compare("IQ") == 0) {
             auto* iqSink = new electrosense::IQSink(ElectrosenseContext::getInstance()->getOutputFileName());
             vComponents.push_back(iqSink);
-            iqSink->setQueueIn(rdcBlock->getQueueOut());
+            iqSink->setQueueIn(rtlDriver->getQueueOut());
 
         }
 
@@ -368,6 +391,9 @@ int main( int argc, char* argv[] ) {
 
     }
 
+    finish_ok();
+
+    /*
     std::cout << std::endl << "Shutdown components ..." << std::endl;
     for (unsigned int i=0; i<vComponents.size(); i++) {
         std::cout << "  - Stopping component: " << vComponents.at(i)->getNameId() << std::endl;
@@ -376,5 +402,7 @@ int main( int argc, char* argv[] ) {
 
 
     std::cout << "Sensing process finished correctly." << std::endl;
+     */
+
     return 0;
 }

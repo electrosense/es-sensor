@@ -23,6 +23,7 @@
 
 
 #include "rtlsdrDriver.h"
+#include <pthread.h>
 
 namespace electrosense {
 
@@ -229,6 +230,7 @@ static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ct
 	if (cp.duration != 0 && (diff.tv_sec >= cp.duration))
 	{
 		rtlsdr_cancel_async(dev);
+        pthread_exit(NULL);
 		return;
 	}
 }
@@ -237,6 +239,18 @@ bool rtlsdrDriver::isRunning () {
     return mRunning;
 };
 
+static void *aux_thread (void *arg) {
+
+
+    callback_package_t * cp_p=(callback_package_t *)arg;
+    callback_package_t & cp=*cp_p;
+
+    rtlsdr_read_async(cp.dev, capbuf_rtlsdr_callback,arg,0,0);
+    pthread_exit(NULL);
+
+}
+
+
 void rtlsdrDriver::run () {
 
     mRunning = true;
@@ -244,6 +258,8 @@ void rtlsdrDriver::run () {
     if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
         SyncSampling();
     else{
+
+
          // Reserving 262144 values for the buffer"
         m_capbuf_raw.reserve( (256*1024)/2 );
         mSeqHopping = new SequentialHopping();
@@ -251,7 +267,7 @@ void rtlsdrDriver::run () {
 
         callback_package_t cp;
         cp.buf=&m_capbuf_raw;
-        cp.center_frequency = mSeqHopping->nextHop();
+        cp.center_frequency = ElectrosenseContext::getInstance()->getMinFreq();
         cp.queue = mQueueOut;
         cp.duration = ElectrosenseContext::getInstance()->getMinTimeRes();
         cp.dev = mDevice;
@@ -274,7 +290,13 @@ void rtlsdrDriver::run () {
             mRunning = false;
         }
 
-        rtlsdr_read_async(mDevice,capbuf_rtlsdr_callback,(void *)&cp,0,0);
+        // Workaround for the RPI
+        pthread_t myth;
+        pthread_create ( &myth, NULL, aux_thread, (void *)&cp );
+        pthread_join(myth,NULL);
+
+        //rtlsdr_read_async(mDevice,capbuf_rtlsdr_callback,(void *)&cp,0,0);
+
 
         m_capbuf_raw.clear();
 
@@ -431,8 +453,11 @@ int rtlsdrDriver::stop()
     mRunning = false;
     waitForThread();
 
-    rtlsdr_close(mDevice);
-	mDevice = NULL;
+    // Workaround: RPi does not work properly the cancellation of the async task
+    if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 ) {
+        rtlsdr_close(mDevice);
+        mDevice = NULL;
+    }
 
     return 1;
 }

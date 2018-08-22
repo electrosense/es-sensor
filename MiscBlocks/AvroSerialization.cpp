@@ -111,8 +111,6 @@ namespace electrosense {
                     fprintf(stderr, "[AvroSerialization] Error while allocating memory\n");
                     exit(-1);
                 }
-                else
-                    std::cout << "buf_size: " << buf_size << " bytes " << std::endl;
 
                 // Create Avro memory writer
                 avro_writer_t avro_writer = avro_writer_memory(buf, buf_size);
@@ -251,8 +249,6 @@ namespace electrosense {
                 avro_value_decref(&avro_value_element);
 
                 avro_value_write(avro_writer, &avro_value_sample);
-
-                std::cout << "Size Writer: " << avro_writer_tell(avro_writer) << std::endl;
 
                 segment->setAvroBuffer(buf, buf_size);
 
@@ -422,8 +418,6 @@ namespace electrosense {
 
                 avro_value_decref(&avro_value_element);
                 avro_value_write(avro_writer, &avro_value_sample);
-
-                std::cout << "Size Writer: " << avro_writer_tell(avro_writer) << std::endl;
 
                 segment->setAvroBuffer(buf, buf_size);
 
