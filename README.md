@@ -1,14 +1,16 @@
 
 # es-sensor 
 
-Sensing software used in electrosense nodes (http://electrosense.org). If you are looking for an image ready to run in RaspBerryPi go directly [here](https://electrosense.org/join.html)
+Sensing software used in electrosense nodes (http://electrosense.org). If you are looking for an image ready to run in RaspberryPi go directly [here](https://electrosense.org/join.html)
 
 ## Dependencies
 
 * Install the following packages
 
 ```
-$  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev libusb-1.0-0-dev librtlsd    r fftw-dev libssl-dev
+$  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 \
+    libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev \ 
+    libusb-1.0-0-dev librtlsd    r fftw-dev libssl-dev
 ```
 
 * More details to Apache Avro are available at http://avro.apache.org. Releases may be downloaded from Apache mirror at http://www.apache.org/dyn/closer.cgi/avro/.
@@ -38,7 +40,7 @@ $ make
 
 ## Run
 
-* Storage the measurements to a file
+* Write measurements into a file:
 
 ```
 ./es_sensor 24000000 1700000000 -u /tmp/measurements.csv
