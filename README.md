@@ -1,7 +1,9 @@
 
 # es-sensor 
 
-Sensing software used in electrosense nodes (http://electrosense.org). If you are looking for an image ready to run in RaspberryPi go directly [here](https://electrosense.org/join.html)
+Sensing software used in ElectroSense nodes (http://electrosense.org). 
+
+If you are looking for an image ready to run on a RaspberryPi go [here](https://electrosense.org/app.html#!/join)
 
 ## Dependencies
 
@@ -10,7 +12,7 @@ Sensing software used in electrosense nodes (http://electrosense.org). If you ar
 ```
 $  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 \
     libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev \ 
-    libusb-1.0-0-dev librtlsd    r fftw-dev libssl-dev
+    libusb-1.0-0-dev librtlsdr fftw-dev libssl-dev
 ```
 
 * More details to Apache Avro are available at http://avro.apache.org. Releases may be downloaded from Apache mirror at http://www.apache.org/dyn/closer.cgi/avro/.
@@ -23,11 +25,6 @@ $ mkdir build && cd build/
 $ cmake ../ -DCMAKE_INSTALL_PREFIX=$PREFIX \ -DCMAKE_BUILD_TYPE=RelWithDebInfo
 $ make
 $ sudo make install
-```
-
-
-```
-$  sudo apt install git-core cmake librtlsdr-dev librtlsdr0 libliquid1d libliquid-dev liblzma-dev liblzma5 libssl1.0-dev libusb-1.0-0-dev librtlsdr fftw-dev libssl-dev
 ```
 
 ## Compile
