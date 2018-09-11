@@ -261,7 +261,15 @@ static void *aux_thread (void *arg) {
     // Sleep until the absolute time is fulfilled
     struct timespec currentTime;
     clock_gettime(CLOCK_REALTIME, &currentTime);
+
     timespec_diff(&currentTime,&ref_time,&time_diff);
+
+    if (time_diff.tv_sec < 0 || time_diff.tv_nsec < 0)
+    {
+        std::cerr << "[ERROR] Starting Time is in the past! " << std::endl;
+        pthread_exit(NULL);
+    }
+
     std::cout << "--- IQ Sync Sampling ---" << std::endl;
     std::cout << "CurrentTime: " << currentTime.tv_sec << "." << currentTime.tv_nsec << std::endl;
     std::cout << "StartTime Sampling: " << ref_time.tv_sec << "." << ref_time.tv_nsec << std::endl;
