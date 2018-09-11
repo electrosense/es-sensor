@@ -70,7 +70,7 @@ void usage (char* name)
                     "    [-w <window>]\n"
                     "\n"
                     "  IQ Pipeline\n"
-                    "    [-b <absolute_time>]\n"
+                    "    [-x <absolute_time>]\n"
                     "\n"
                     "Arguments:\n"
                     "  min_freq               Lower frequency bound in Hz\n"
@@ -130,7 +130,7 @@ void usage (char* name)
                     "                           The time to dwell in seconds at a given frequency is given by\n"
                     "                           (((1<<'log2_fft_size')-'soverlap')*'avg_factor'+'soverlap')/'samp_rate'\n"
                     "IQ PIPELINE\n"
-                    "  -b <absolute_time>     Absolute time when receiver should start sampling\n"
+                    "  -x <absolute_time>     Absolute time when receiver must start sampling\n"
                     "\n"
                     "",
             name,
@@ -164,7 +164,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:z:c:k:g:y:s:f:b:a:o:q:t:r:w:l:m:n:u:p";
+    const char *options = "hd:z:c:k:g:y:s:f:b:a:ox:q:t:r:w:l:m:n:u:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {
@@ -231,7 +231,7 @@ void parse_args(int argc, char *argv[])
                 ElectrosenseContext::getInstance()->setComprLevel(atol(optarg));
                 break;
             case 'm':
-		ElectrosenseContext::getInstance()->setTcpHosts(argstr);
+		        ElectrosenseContext::getInstance()->setTcpHosts(argstr);
                 break;
             case 'n':
                 ElectrosenseContext::getInstance()->setTlsHosts(argstr);
@@ -241,6 +241,9 @@ void parse_args(int argc, char *argv[])
                 break;
             case 'u':
                 ElectrosenseContext::getInstance()->setOutputFileName(argstr);
+                break;
+            case 'x':
+                ElectrosenseContext::getInstance()->setStartTimeSampling(atol(optarg));
                 break;
 
             default:

@@ -50,6 +50,7 @@ const std::string DEFAULT_TLS_HOSTS = "0";
 const bool DEFAULT_FIFO_PRIORITY = true;
 const int DEFAULT_BUFFER_TIME = 5; // milliseconds
 const std::string DEFAULT_OUTPUT_FILENAME = "";
+const unsigned long DEFAULT_START_TIME_SAMPLING = 0;
 
 // Hopping Strategies
 const int SEQUENTIAL_HOPPING_STRATEGY = 0;
@@ -126,6 +127,9 @@ public:
     std::string getOutputFileName() const;
     void setOutputFileName(const std::string& fileName);
 
+    unsigned long getStartTimeSampling() const;
+    void setStartTimeSampling (const unsigned int& startTime);
+
 private:
 
     ElectrosenseContext() {
@@ -152,6 +156,7 @@ private:
             setMaxFreq(0);
             setBufferTime(DEFAULT_BUFFER_TIME);
             setOutputFileName(DEFAULT_OUTPUT_FILENAME);
+            setStartTimeSampling(DEFAULT_START_TIME_SAMPLING);
     };
 
     static ElectrosenseContext* mInstance;
@@ -190,7 +195,7 @@ private:
     bool 		 mFifoPriority;
     unsigned int mBufferTime;
     std::string  mPipeline;
-
+    unsigned long mstartTimeSampling;
 
     unsigned int mHoppingStrategyId;
     unsigned int mWindowingId;

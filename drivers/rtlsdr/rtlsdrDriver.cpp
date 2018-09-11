@@ -179,6 +179,7 @@ typedef struct {
     unsigned int duration;
     long* samples_read;
     struct timespec init_time;
+    int init_sampling;
     int sensor_id;
 
     int sending_mode;   // 0: continuous | 1: interleave
@@ -202,6 +203,7 @@ static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ct
     struct timespec current_time;
 	clock_gettime(CLOCK_REALTIME, &current_time);
 
+
     // Getting parameters
     callback_package_t * cp_p=(callback_package_t *)ctx;
 	callback_package_t & cp=*cp_p;
@@ -209,6 +211,10 @@ static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ct
     uint64_t center_freq = cp.center_frequency;
     ReaderWriterQueue< SpectrumSegment*> *queue = cp.queue;
     rtlsdr_dev_t * dev=cp.dev;
+
+    // we set init time to current time only in the first execution
+    if (cp.init_time.tv_sec == 0)
+        cp.init_time = current_time;
 
     for (uint32_t t=0;t<len;t=t+2) {
         capbuf_raw_p.push_back( std::complex<float>(buf[t] ,buf[t+1] ));
@@ -241,9 +247,28 @@ bool rtlsdrDriver::isRunning () {
 
 static void *aux_thread (void *arg) {
 
+	struct timespec ref_time;
+
+    ref_time.tv_sec = ElectrosenseContext::getInstance()->getStartTimeSampling();
+    ref_time.tv_nsec = 0;
+
+    struct timespec time_diff;
+
 
     callback_package_t * cp_p=(callback_package_t *)arg;
     callback_package_t & cp=*cp_p;
+
+    // Sleep until the absolute time is fulfilled
+    struct timespec currentTime;
+    clock_gettime(CLOCK_REALTIME, &currentTime);
+    timespec_diff(&currentTime,&ref_time,&time_diff);
+    std::cout << "--- IQ Sync Sampling ---" << std::endl;
+    std::cout << "CurrentTime: " << currentTime.tv_sec << "." << currentTime.tv_nsec << std::endl;
+    std::cout << "StartTime Sampling: " << ref_time.tv_sec << "." << ref_time.tv_nsec << std::endl;
+    std::cout << "Sleeping ... " << std::endl;
+    std::cout << "--- End IQ Sync Sampling ---" << std::endl << std::endl;
+
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ref_time, NULL);
 
     rtlsdr_read_async(cp.dev, capbuf_rtlsdr_callback,arg,0,0);
     pthread_exit(NULL);
@@ -257,6 +282,7 @@ void rtlsdrDriver::run () {
 
     if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 )
         SyncSampling();
+
     else{
 
 
@@ -269,11 +295,11 @@ void rtlsdrDriver::run () {
         cp.buf=&m_capbuf_raw;
         cp.center_frequency = ElectrosenseContext::getInstance()->getMinFreq();
         cp.queue = mQueueOut;
-        cp.duration = ElectrosenseContext::getInstance()->getMinTimeRes();
+        cp.duration = ElectrosenseContext::getInstance()->getMonitorTime();
         cp.dev = mDevice;
-        struct timespec init_time;
-        clock_gettime(CLOCK_REALTIME, &init_time);
-        cp.init_time = init_time;
+
+        cp.init_time.tv_sec = 0;
+        cp.init_time.tv_nsec = 0;
         cp.samples_read = &samples_read;
 
         int r = rtlsdr_set_center_freq(mDevice, cp.center_frequency);
@@ -290,12 +316,12 @@ void rtlsdrDriver::run () {
             mRunning = false;
         }
 
-        // Workaround for the RPI
+        // Workaround for the RPI for finishing the thread properly
         pthread_t myth;
         pthread_create ( &myth, NULL, aux_thread, (void *)&cp );
         pthread_join(myth,NULL);
 
-        //rtlsdr_read_async(mDevice,capbuf_rtlsdr_callback,(void *)&cp,0,0);
+
 
 
         m_capbuf_raw.clear();
