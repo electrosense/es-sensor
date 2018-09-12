@@ -164,7 +164,7 @@ void parse_args(int argc, char *argv[])
 
 
     int opt;
-    const char *options = "hd:z:c:k:g:y:s:f:b:a:ox:q:t:r:w:l:m:n:u:p";
+    const char *options = "hd:z:c:k:g:y:s:f:b:a:o:x:q:t:r:w:l:m:n:u:p";
 
     // Option arguments
     while((opt = getopt(argc, argv, options)) != -1) {
