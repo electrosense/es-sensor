@@ -22,8 +22,7 @@
 
 
 #include "Transmission.h"
-#include <netinet/in.h>
-#include "../misc/TLS.h"
+
 
 
 namespace electrosense {
@@ -33,17 +32,17 @@ namespace electrosense {
         mStrHosts = ElectrosenseContext::getInstance()->getTlsHosts();
         parse_tls_hosts();
 
+        tls_con = NULL;
+        tcp_con = NULL;
+
+
+
     }
 
+    void Transmission::checkConnection()
+    {
 
-    void Transmission::run() {
-
-        std::cout << "[*] Transmission block running .... " << std::endl;
-
-        TLS_Connection *tls_con = NULL;
-        TCP_Connection * tcp_con = NULL;
-
-        if (mConnection == ConnectionType::TLS) {
+        if (tls_con == NULL && mConnection == ConnectionType::TLS) {
 
             tls_con = (TLS_Connection *) malloc(sizeof(TLS_Connection *));
 
@@ -52,14 +51,22 @@ namespace electrosense {
 
             while (!tls_connect(tls_con) < 0) { sleep(1); }
 
-        } else if (mConnection == ConnectionType::TCP) {
+
+        } else if ( tcp_con == NULL && mConnection == ConnectionType::TCP) {
 
             tcp_con = (TCP_Connection *) malloc(sizeof(TCP_Connection *));
             tcp_init_p(&tcp_con, mHost.c_str(), atoi(mPort.c_str()));
 
             while (!tcp_connect(tcp_con) < 0) { sleep(1); }
 
+
         }
+    }
+
+
+    void Transmission::run() {
+
+        std::cout << "[*] Transmission block running .... " << std::endl;
 
         unsigned int prev_data_size = 0, payload_size, packet_size = 0;
         unsigned int *buf = NULL;
@@ -71,7 +78,6 @@ namespace electrosense {
             throw std::logic_error("Queue[IN] is NULL!");
         }
 
-
         unsigned int fft_size = 1<<ElectrosenseContext::getInstance()->getLog2FftSize();
         unsigned int reduced_fft_size = (1 - ElectrosenseContext::getInstance()->getFreqOverlap())*(fft_size + 1);
 
@@ -79,12 +85,20 @@ namespace electrosense {
         if (reduced_fft_size % 2 == 0)
             reduced_fft_size++;
 
-        while(mRunning) {
+        while(mRunning || mQueueIn->size_approx() != 0) {
 
             if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
+                // We need to check the connection here since the clock_nanosleep() function in the rtlsdrDriver interferes
+                // with the socket.
+                checkConnection();
+
                 char* buffer = segment->getAvroBuffer();
                 unsigned int data_size = segment->getAvroBufferSize();
+
+                //std::cout << "[*] " << ElectrosenseContext::getInstance()->getPipeline() << " " <<
+                //    "Transmission segment " << segment->getTimeStamp().tv_sec << "." << segment->getTimeStamp().tv_nsec << std::endl;
+
 
                 if(data_size != prev_data_size) {
                     // The payload consists of the compressed data plus some padding, guaranteeing the packet size
@@ -113,6 +127,7 @@ namespace electrosense {
                     buf[0] = htonl(data_size);
                     memcpy(buf + 1, buffer, data_size);
                 }
+
 
                 if (mConnection == ConnectionType::TLS)
                     tls_write(tls_con, buf, packet_size);

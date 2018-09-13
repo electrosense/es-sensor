@@ -345,7 +345,7 @@ int main( int argc, char* argv[] ) {
         if ( ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0)
             avroBlock->setQueueIn(avgBlock->getQueueOut());
         else if ( ElectrosenseContext::getInstance()->getPipeline().compare("IQ") == 0)
-            avroBlock->setQueueIn(rdcBlock->getQueueOut());
+            avroBlock->setQueueIn(rtlDriver->getQueueOut());
 
 
         auto* transBlock = new electrosense::Transmission();

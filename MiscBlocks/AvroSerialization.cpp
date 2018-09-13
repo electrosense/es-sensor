@@ -99,7 +99,7 @@ namespace electrosense {
         long long mac_eth0_dec;
         get_mac_address_eth0(&mac_eth0_dec);
 
-        while (mRunning) {
+        while(mRunning || mQueueIn->size_approx() != 0) {
 
             if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
@@ -226,6 +226,7 @@ namespace electrosense {
 
 
 
+
                 avro_value_t avro_value_measurements;
 
                 avro_value_get_by_name(&avro_value_sample, "measurements", &avro_value_measurements, NULL);
@@ -234,21 +235,24 @@ namespace electrosense {
 
                 std::vector<std::complex<float>> iqsamples = segment->getIQSamples();
 
-                for(unsigned int i=0; i<iqsamples.size(); ++i) {
+                for(unsigned int i=0; i<iqsamples.size(); i++) {
                     size_t new_index;
                     std::complex<float> sample = (segment->getIQSamples()[i]);
 
                     avro_value_append(&avro_value_measurements, &avro_value_element, &new_index);
-                    avro_value_set_float(&avro_value_element, sample.real());
+                    check_i(avro_value_set_float(&avro_value_element, sample.real()));
 
                     avro_value_append(&avro_value_measurements, &avro_value_element, &new_index);
-                    avro_value_set_float(&avro_value_element, sample.imag());
+                    check_i(avro_value_set_float(&avro_value_element, sample.imag()));
 
                 }
+
 
                 avro_value_decref(&avro_value_element);
 
                 avro_value_write(avro_writer, &avro_value_sample);
+
+                //std::cout << "Size Writer: " << avro_writer_tell(avro_writer) << std::endl;
 
                 segment->setAvroBuffer(buf, buf_size);
 

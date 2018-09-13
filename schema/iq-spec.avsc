@@ -1,0 +1,230 @@
+{
+    "name": "IQSample",
+    "namespace": "org.electrosense.avro.v3",
+    "doc": "",
+    "type": "record",
+    "fields": [
+        {
+            "name": "senId",
+            "doc": "Unique sensor identifier (for RPis it's the decimal representation of eth0 MAC address)",
+            "type": "long"
+        },
+        {
+            "name": "timeSecs",
+            "doc": "Number of seconds since the UNIX epoch start on January 1st, 1970 at UTC",
+            "type": "long"
+        },
+        {
+            "name": "timeMicroSecs",
+            "doc": "Microseconds since TimeSecs",
+            "type": "int"
+        },
+        {
+            "name": "senEnv",
+            "doc": "",
+            "type": {
+                "name": "SenEnv",
+                "namespace": "org.electrosense.avro.v3",
+                "doc": "",
+                "type": "record",
+                "fields": [
+                    {
+                        "name": "senTemp",
+                        "doc": "Ambient temperature of the sensor in degrees Celsius",
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": "float"
+                            }			
+                        ]
+                    },
+                    {
+                        "name": "senLatitude",
+                        "doc": "(optional) Sensor latitude in WGS-84 degrees",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "senLongitude",
+                        "doc": "(optional) Sensor longitude in WGS-84 degrees",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "senAltitude",
+                        "doc": "(optional) Sensor altitude in meters above sea level",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "senConf",
+            "doc": "",
+            "type": {
+                "name": "SenConf",
+                "namespace": "org.electrosense.avro.v3",
+                "doc": "",
+                "type": "record",
+                "fields": [
+                    {
+                        "name": "hoppingStrategy",
+                        "doc": "(optional) Hopping strategy  used to overcome the bandwidth limitations of the RF front-end. [0:Sequential, 1:Random, 2:Similarity]",
+                        "type": [
+                            "null",
+                            {
+                                "type": "fixed",
+                                "size": 1,
+                                "name": "HoppingStrategy"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "antennaGain",
+                        "doc": "(optional) antenna gain in dBi",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "frontendGain",
+                        "doc": "(optional) RF front-end gain in dB. [-1 for automatic gain control]",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "samplingRate",
+                        "doc": "(optional) Sensor's sampling rate in samples per second",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "doc": "Center frequency in Hz to which the RF front-end was tuned to while recording the associated spectrum data.",
+                        "name": "centerFreq",
+                        "type": "long"
+                    },
+                    {
+                        "name": "frequencyCorrectionFactor",
+                        "doc": "(optional) Correction factor for center frequency in Hz. The correction is already applied to the center frequency [0.0 for no correction]",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "antennaId",
+                        "doc": "(optional) Identifier for the antenna being used if device has multiple antennas",
+                        "type": [
+                            "null",
+                            {
+                                "type": "fixed",
+                                "size": 1,
+                                "name": "AntennaId"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "rfSync",
+                        "doc": "(optional) Time synchronization of the radio frontend [0: none, 1: GPS, 2: Reference Clock, 5: Other]",
+                        "type": [
+                            "null",
+                            {
+                                "type": "fixed",
+                                "size": 1,
+                                "name": "RfSync"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "systemSync",
+                        "doc": "(optional) Time synchronization of the system [0: none, 1: GPS, 2: Reference Clock, 3: NTP, 4: OpenSky, 5: Other]",
+                        "type": [
+                            "null",
+                            {
+                                "type": "fixed",
+                                "size": 1,
+                                "name": "SystemSync"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "sigStrengthCalibration",
+                        "doc": "(optional) Signal strength is calibrated",
+                        "type": [
+                            "null",
+                            "boolean"
+                        ]
+                    },
+                    {
+                        "name": "iqBalanceCalibration",
+                        "doc": "(optional) IQ samples are balanced",
+                        "type": [
+                            "null",
+                            "boolean"
+                        ]
+                    },
+                    {
+                        "name": "estNoiseFloor",
+                        "doc": "(optional) Estimated noise floor in dB",
+                        "type": [
+                            "null",
+                            "float"
+                        ]
+                    },
+                    {
+                        "name": "extraConf",
+                        "doc": "(optional) Extra configuration for future use",
+                        "type": [
+                            "null",
+                            {
+                                "type": "map",
+                                "values": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "lossRate",
+            "doc": "Sample loss rate in percent",
+            "type": [
+                "null",
+                "float"
+            ]
+        },
+        {
+            "name": "obfuscation",
+            "doc": "Method used to obfuscate IQ spectrum data",
+            "type": [
+                "null",
+                {
+                    "type": "fixed",
+                    "size": 1,
+                    "name": "Obfuscation"
+                }
+            ]
+        },
+        {
+            "name": "measurements",
+            "doc": "Actual measurement data. Unit depends on selected pipeline",
+            "type": {
+                "type": "array",
+                "items": "float"
+            }
+        }
+    ]
+}
