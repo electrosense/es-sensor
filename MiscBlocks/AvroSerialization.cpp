@@ -54,7 +54,7 @@ namespace electrosense {
         std::cout << "[*] AvroSerialization IQ block running .... " << std::endl;
 
         char                 *json_schema;
-        const char           *json_schema_file = "schema/iq-spec.avsc";
+        const char           *json_schema_file = "schemas/iq-spec.avsc";
         avro_schema_t        avro_schema = NULL;
 
 
@@ -275,7 +275,7 @@ namespace electrosense {
         std::cout << "[*] AvroSerialization PSD block running .... " << std::endl;
 
         char                 *json_schema;
-        const char           *json_schema_file = "schema/rtl-spec.avsc";
+        const char           *json_schema_file = "schemas/rtl-spec.avsc";
         avro_schema_t        avro_schema = NULL;
 
         mRunning = true;

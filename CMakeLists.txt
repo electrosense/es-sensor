@@ -53,7 +53,9 @@ target_link_libraries(es_sensor
 
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/es_sensor DESTINATION /usr/share/electrosense/bin/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schema/rtl-spec.avsc DESTINATION /usr/share/electrosense/schema/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/rtl-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/iq-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
+
 
 # Determine current architecture
 macro(dpkg_arch VAR_NAME)
