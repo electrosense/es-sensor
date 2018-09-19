@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.7)
 project(electrosense-sensor)
 
 # Set version
-SET (VERSION "1.1.7")
-SET (DEBVERSION "dev1")
+SET (VERSION "1.2.0")
+SET (DEBVERSION "1")
 add_definitions( -DAPP_VERSION="${VERSION}-${DEBVERSION}")
 
 
