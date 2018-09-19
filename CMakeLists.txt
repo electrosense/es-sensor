@@ -101,6 +101,7 @@ SET (CPACK_PACKAGE_DESCRIPTION "Electrosense is a software-defined radio for mon
 
 SET (CPACK_PACKAGE_CONTACT "Roberto Calvo-Palomino <roberto.calvo@imdea.org>")
 SET (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${PKG_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+SET (CPACK_DEBIAN_PACKAGE_PROVIDES electrosense-run)
 
 SET (CPACK_COMPONENTS_ALL Libraries ApplicationData)
 include (CPack Documentation)
