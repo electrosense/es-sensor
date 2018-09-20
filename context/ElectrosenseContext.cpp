@@ -44,8 +44,10 @@ ElectrosenseContext::~ElectrosenseContext() {
 void ElectrosenseContext::print()
 {
 
+    std::cout << "---- Config ---- " << std::endl;
     std::cout << "Min Freq: " << getMinFreq() << std::endl;
     std::cout << "Max Freq: " << getMaxFreq() << std::endl;
+    std::cout << "Pipeline: " << getPipeline() << std::endl;
     std::cout << "Windowing: " << getWindowing() << std::endl;
     std::cout << "AvgFactor: " << getAvgFactor() << std::endl;
     std::cout << "SamplingRate: " << getSamplingRate() << std::endl;
@@ -70,6 +72,17 @@ void ElectrosenseContext::print()
     std::cout << "FFT Computation: " << "CPU" << std::endl;
 #endif
 
+    std::cout << "Absolute Start Time (IQ): " << getStartTimeSampling() << std::endl;
+
+    std::cout << "---- End Config ---- " << std::endl << std::endl;
+}
+
+std::string ElectrosenseContext::getPipeline() const {
+    return mPipeline;
+}
+
+void ElectrosenseContext::setPipeline(const std::string &pipeline) {
+    mPipeline = pipeline;
 }
 unsigned int ElectrosenseContext::getAvgFactor() const {
     return mAvgFactor;
@@ -143,6 +156,13 @@ void ElectrosenseContext::setOutputFileName(const std::string& fileName) {
     mOutputFileName = fileName;
 }
 
+unsigned long ElectrosenseContext::getStartTimeSampling() const {
+    return mstartTimeSampling;
+}
+
+void ElectrosenseContext::setStartTimeSampling (const unsigned int& startTime) {
+    mstartTimeSampling = startTime;
+}
 
 float ElectrosenseContext::getFreqOverlap() const {
     return mFreqOverlap;
@@ -215,6 +235,7 @@ uint64_t ElectrosenseContext::getMinFreq() const {
 void ElectrosenseContext::setMinFreq(uint64_t minFreq) {
     mMinFreq = minFreq;
 }
+
 
 unsigned int ElectrosenseContext::getMinTimeRes() const {
     return mMinTimeRes;

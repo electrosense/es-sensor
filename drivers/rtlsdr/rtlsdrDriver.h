@@ -66,6 +66,10 @@ namespace electrosense {
         // Running
         bool isRunning ();
 
+        void SyncSampling();
+
+        void AsyncSampling();
+
         ReaderWriterQueue<int>* getQueueIn() { return NULL; }
         void setQueueIn (ReaderWriterQueue<int>* QueueIn ) {};
 
@@ -94,6 +98,11 @@ namespace electrosense {
 
         converter mConverterDriver;
         bool mConverterEnabled;
+
+
+
+
+        std::vector<std::complex<float>> m_capbuf_raw;
 
     };
 

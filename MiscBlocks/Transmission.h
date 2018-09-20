@@ -33,6 +33,8 @@
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
+#include <netinet/in.h>
+#include "../misc/TLS.h"
 
 namespace electrosense {
 
@@ -54,13 +56,13 @@ namespace electrosense {
         ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return NULL; };
         void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
 
-
+        enum ConnectionType { TCP=0, TLS};
 
     private:
 
         void run();
         void parse_tls_hosts();
-
+        void checkConnection();
 
         bool mRunning;
 
@@ -74,6 +76,11 @@ namespace electrosense {
         std::string mCert;
         std::string mKey;
 
+        ConnectionType mConnection;
+
+
+        TLS_Connection *tls_con;
+        TCP_Connection * tcp_con;
 
     };
 

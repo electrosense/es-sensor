@@ -19,52 +19,45 @@
  * 	Authors: 	Roberto Calvo-Palomino <roberto.calvo@imdea.org>
  *
  */
-
-#ifndef ES_SENSOR_AVROSERIALIZATION_H
-#define ES_SENSOR_AVROSERIALIZATION_H
+#ifndef ELECTROSENSE_SENSOR_IQSINK_H
+#define ELECTROSENSE_SENSOR_IQSINK_H
 
 
 #include <vector>
 #include <complex.h>
 #include <unistd.h>
 #include <algorithm>
-
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 #include "../drivers/Component.h"
 #include "../drivers/Communication.h"
 #include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
 
-extern "C" {
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <avro.h>
-};
-
 namespace electrosense {
 
-
-    class AvroSerialization: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
+    class IQSink: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
 
     public:
 
-        AvroSerialization();
+        IQSink();
 
-        ~AvroSerialization(){};
+        IQSink(std::string filename);
 
-        std::string getNameId () { return std::string("AvroSerialization"); };
+        ~IQSink(){};
+
+        std::string getNameId () { return std::string("IQSink"); };
 
         int stop();
 
-        void PSD();
-
-        void IQ();
+        void setFileName (std::string filename) { mFileName = filename; };
 
         ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
         void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return mQueueOut; };
+        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return NULL; };
         void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
 
     private:
@@ -73,14 +66,15 @@ namespace electrosense {
 
         bool mRunning;
 
-        ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
         ReaderWriterQueue<SpectrumSegment*>* mQueueIn;
 
-        int get_mac_address_eth0(long long *mac_dec);
+        std::string mFileName;
+        std::ofstream mOutputFile;
+
 
     };
 
-
 }
 
-#endif //ES_SENSOR_AVROSERIALIZATION_H
+
+#endif //ELECTROSENSE_SENSOR_IQSINK_H

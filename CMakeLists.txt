@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.7)
 project(electrosense-sensor)
 
 # Set version
-SET (VERSION "1.1.6")
-add_definitions( -DAPP_VERSION=${VERSION})
+SET (VERSION "1.2.0")
+SET (DEBVERSION "1")
+add_definitions( -DAPP_VERSION="${VERSION}-${DEBVERSION}")
 
 
 string(TIMESTAMP TIME_COMPILATION  "%Y-%m-%d %H:%M")	
@@ -36,7 +37,7 @@ set(SOURCE_FILES main.cpp drivers/Driver.h drivers/rtlsdr/rtlsdrDriver.cpp drive
         ProcessingBlocks/Windowing.cpp ProcessingBlocks/Windowing.h ProcessingBlocks/FFT.cpp ProcessingBlocks/FFT.h
         ProcessingBlocks/Averaging.cpp ProcessingBlocks/Averaging.h MiscBlocks/FileSink.cpp MiscBlocks/FileSink.h
         MiscBlocks/AvroSerialization.cpp MiscBlocks/AvroSerialization.h MiscBlocks/Transmission.cpp MiscBlocks/Transmission.h
-        misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h )
+        misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h MiscBlocks/IQSink.cpp MiscBlocks/IQSink.h)
 
 add_executable(es_sensor ${SOURCE_FILES})
 
@@ -52,7 +53,9 @@ target_link_libraries(es_sensor
 
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/es_sensor DESTINATION /usr/share/electrosense/bin/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schema/rtl-spec.avsc DESTINATION /usr/share/electrosense/schema/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/rtl-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/iq-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
+
 
 # Determine current architecture
 macro(dpkg_arch VAR_NAME)
@@ -76,7 +79,7 @@ SET (CPACK_SET_DESTDIR "on")
 SET (CPACK_PACKAGING_INSTALL_PREFIX "/usr/share/")
 
 
-SET (PKG_VERSION ${VERSION}-1)
+SET (PKG_VERSION ${VERSION}-${DEBVERSION})
 # CPack version numbers for release tarball name.
 SET (CPACK_PACKAGE_VERSION_MAJOR 0)
 SET (CPACK_PACKAGE_VERSION_MINOR 0)
@@ -98,6 +101,7 @@ SET (CPACK_PACKAGE_DESCRIPTION "Electrosense is a software-defined radio for mon
 
 SET (CPACK_PACKAGE_CONTACT "Roberto Calvo-Palomino <roberto.calvo@imdea.org>")
 SET (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${PKG_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+SET (CPACK_DEBIAN_PACKAGE_PROVIDES electrosense-run)
 
 SET (CPACK_COMPONENTS_ALL Libraries ApplicationData)
 include (CPack Documentation)
