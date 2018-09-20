@@ -38,9 +38,15 @@ $ make
 
 ## Run
 
-* Storage the measurements to a file
+* Storage PSD measurements to a file. The output contains time, center frequency and PSD information.
 
 ```
-./es_sensor 24000000 1700000000 -u /tmp/measurements.csv
+./es_sensor 24000000 1700000000 -z PSD -s 2400000 -u /tmp/psd_data.csv
+```
+
+* Storage IQ data for 10 seconds to a file. The output contains I/Q samples as a sequence of 32bits float values (little endian).
+
+```
+./es_sensor 806000000 806000000 -z IQ -s 2400000 -t 10 -u /tmp/iq_data.raw
 ```
 
