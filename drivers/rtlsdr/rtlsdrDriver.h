@@ -28,7 +28,6 @@
 #include <rtl-sdr.h>
 #include <thread>
 #include <zconf.h>
-#include <complex.h>
 
 #include "../Driver.h"
 #include "../Component.h"
@@ -36,7 +35,11 @@
 #include "rtlsdrDriver.h"
 #include "../../context/ElectrosenseContext.h"
 #include "../common/SequentialHopping.h"
+
+// Workaround issue #4 , complex.h breaks openssl's RSA library
+//   include RSA before any mention to complex.h
 #include "../../types/SpectrumSegment.h"
+#include <complex.h>
 
 extern "C" {
 #include "converter/converter.h"

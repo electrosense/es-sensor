@@ -21,8 +21,11 @@
  */
 
 
+// Workaround issue #4 , complex.h breaks openssl's RSA library
+//   include RSA before any mention to complex.h (in Transmission.h)
+#include "../misc/TLS.h"
 #include "Transmission.h"
-
+#include <netinet/in.h>
 
 
 namespace electrosense {

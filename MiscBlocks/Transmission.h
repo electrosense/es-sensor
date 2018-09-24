@@ -27,14 +27,15 @@
 #include <unistd.h>
 #include <string.h>
 
-
+// Workaround issue #4 , complex.h breaks openssl's RSA library
+//   include RSA before any mention to complex.h (in SpectrumSegment.h)
+#include "../misc/TLS.h"
 #include "../drivers/Component.h"
 #include "../drivers/Communication.h"
-#include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
+#include "../types/SpectrumSegment.h"
 
 #include <netinet/in.h>
-#include "../misc/TLS.h"
 
 namespace electrosense {
 

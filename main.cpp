@@ -28,6 +28,13 @@
 
 #include <signal.h>
 
+// Workaround issue #4 , complex.h breaks openssl's RSA library
+//   include RSA before any mention to complex.h (in rtlsdrDriver.h)
+#include "MiscBlocks/Transmission.h"
+#include "MiscBlocks/AvroSerialization.h"
+#include "MiscBlocks/FileSink.h"
+#include "MiscBlocks/IQSink.h"
+
 #include "generated/version_config.h"
 #include "context/ElectrosenseContext.h"
 
@@ -39,11 +46,6 @@
 #include "ProcessingBlocks/FFT.h"
 #include "ProcessingBlocks/Averaging.h"
 
-#include "MiscBlocks/AvroSerialization.h"
-#include "MiscBlocks/Transmission.h"
-
-#include "MiscBlocks/FileSink.h"
-#include "MiscBlocks/IQSink.h"
 
 void usage (char* name)
 {
