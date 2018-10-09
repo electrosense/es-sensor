@@ -19,9 +19,14 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++11")
 # Add the local Find*.cmake scripts
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
-FIND_PACKAGE( RTLSDR REQUIRED )
-INCLUDE_DIRECTORIES("${RTLSDR_INCLUDE_DIR}")
-
+FIND_PACKAGE(SoapySDR NO_MODULE)
+if (SOAPYSDR_FOUND)
+	INCLUDE_DIRECTORIES("${LIBSOAPYSDR_INCLUDE_DIR}")
+endif ()
+FIND_PACKAGE(avro NO_MODULE)
+if (AVRO_FOUND)
+	INCLUDE_DIRECTORIES("${AVRO_INCLUDE_DIR}")
+endif ()
 # liquid, avro, ssl, crypto
 
 
@@ -29,8 +34,7 @@ configure_file( version_config.h.in generated/version_config.h )
 
 #ADD_SUBDIRECTORY(drivers/rtlsdr/converter/)
 
-set(SOURCE_FILES main.cpp drivers/Driver.h drivers/rtlsdr/rtlsdrDriver.cpp drivers/rtlsdr/rtlsdrDriver.h
-        drivers/rtlsdr/converter/converter.c drivers/rtlsdr/converter/converter.h
+set(SOURCE_FILES main.cpp drivers/Driver.h drivers/soapysdr/soapyDriver.cpp drivers/soapysdr/soapyDriver.h
         context/ElectrosenseContext.cpp context/ElectrosenseContext.h
         drivers/common/SequentialHopping.cpp drivers/common/SequentialHopping.h
         types/SpectrumSegment.cpp types/SpectrumSegment.h ProcessingBlocks/RemoveDC.cpp ProcessingBlocks/RemoveDC.h
@@ -40,9 +44,12 @@ set(SOURCE_FILES main.cpp drivers/Driver.h drivers/rtlsdr/rtlsdrDriver.cpp drive
         misc/TLS.cpp misc/TLS.h misc/TCP.cpp misc/TCP.h MiscBlocks/IQSink.cpp MiscBlocks/IQSink.h)
 
 add_executable(es_sensor ${SOURCE_FILES})
+list(APPEND SoapySDR_LIBRARIES -pthread)
+list(APPEND AVRO_LIBRARIES -pthread)
+
 
 target_link_libraries(es_sensor
-        ${RTLSDR_LIBRARY}
+	SoapySDR
         pthread
         dl
         liquid
@@ -52,7 +59,7 @@ target_link_libraries(es_sensor
 )
 
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/es_sensor DESTINATION /usr/share/electrosense/bin/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/build/es_sensor DESTINATION /usr/share/electrosense/bin/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/rtl-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schemas/iq-spec.avsc DESTINATION /usr/share/electrosense/schemas/)
 

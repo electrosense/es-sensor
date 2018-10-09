@@ -35,10 +35,10 @@
 #include "MiscBlocks/FileSink.h"
 #include "MiscBlocks/IQSink.h"
 
-#include "generated/version_config.h"
+#include "build/generated/version_config.h"
 #include "context/ElectrosenseContext.h"
 
-#include "drivers/rtlsdr/rtlsdrDriver.h"
+#include "drivers/soapysdr/soapyDriver.h"
 #include "drivers/Component.h"
 
 #include "ProcessingBlocks/RemoveDC.h"
@@ -304,7 +304,7 @@ int main( int argc, char* argv[] ) {
     electrosense::Averaging *avgBlock;
 
     // RTL-SDR Driver
-    auto *rtlDriver = new electrosense::rtlsdrDriver();
+    auto *rtlDriver = new electrosense::soapyDriver();
     vComponents.push_back(rtlDriver);
 
     rtlDriver->open("0");
