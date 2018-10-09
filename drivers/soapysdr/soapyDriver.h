@@ -41,10 +41,6 @@
 #include "../../types/SpectrumSegment.h"
 #include <complex.h>
 
-extern "C" {
-#include "converter/converter.h"
-};
-
 namespace electrosense {
 
 
@@ -82,7 +78,6 @@ namespace electrosense {
 
     private:
 
-        const std::string CONVERTER_PATH = "/dev/esenseconv";
 
         // Run the driver in the thread
         void run();
@@ -97,11 +92,6 @@ namespace electrosense {
         SequentialHopping* mSeqHopping;
 
         ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
-
-
-        converter mConverterDriver;
-        bool mConverterEnabled;
-
 
 
 

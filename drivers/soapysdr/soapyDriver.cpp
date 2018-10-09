@@ -34,7 +34,6 @@ namespace electrosense {
 soapyDriver::soapyDriver() {
 
     mQueueOut = new ReaderWriterQueue<SpectrumSegment*>(100);
-    mConverterEnabled = false;
 }
 
 
