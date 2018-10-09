@@ -75,80 +75,21 @@ int soapyDriver::open(std::string device) {
     // Sampling frequency
 		mDevice->setSampleRate(SOAPY_SDR_RX,0,samplingRate);
 		mDevice->setBandwidth(SOAPY_SDR_RX,0,samplingRate);
-    //if (rtlsdr_set_sample_rate(mDevice,samplingRate)<0) {
-    //    	std::cerr << "ERROR: unable to set sampling rate to " << samplingRate << std::endl;
-    //    throw std::logic_error("Fatal Error");
-    //}
 
 	  int frequency = 24e6; // default value
 		mDevice->setFrequency(SOAPY_SDR_RX,0,frequency);
-//  if (rtlsdr_set_center_freq(mDevice,frequency)<0)
-//      {
-//      	std::cerr << "ERROR: unable to set frequency to" << frequency << std::endl;
-//      throw std::logic_error("Fatal Error");
-//  }
-
-//  int* gains;
-//  int count = rtlsdr_get_tuner_gains(mDevice, NULL);
-//  if (count > 0 ) {
-//      gains = (int*) malloc(sizeof(int) * count);
-//      count = rtlsdr_get_tuner_gains(mDevice, gains);
-//      std::cout << "Gain available: ";
-//      for (int i=0; i<count; i++)
-//          std::cout  << gains[i] << " , ";
-
-//      std::cout << std::endl;
-//      free(gains);
-//  }
 
     double gain = ElectrosenseContext::getInstance()->getGain();
 		mDevice->setGainMode(SOAPY_SDR_RX,0,false);
 
-//  int r = rtlsdr_set_tuner_gain_mode(mDevice, 1);
-//      if(r < 0) {
-//      	std::cerr << "ERROR: Failed to enable manual gain mode" << std::endl;
-//      throw std::logic_error("Fatal Error");
-//      }
-//      r = rtlsdr_set_tuner_gain(mDevice, gain*10);
 		mDevice->setGain(SOAPY_SDR_RX,0,gain);
-//      if(r < 0) {
-//      	std::cerr << "ERROR: Failed to set manual tuner gain" << std::endl;
-//      throw std::logic_error("Fatal Error");
-//      }
-//      else {
 		gain = mDevice->getGain(SOAPY_SDR_RX,0);
-//      int g = rtlsdr_get_tuner_gain(mDevice);
-//      std::cout << "Gain set to " << g/10 << std::endl;
-//  }
-
-//      // Reset the buffer
-//      if (rtlsdr_reset_buffer(mDevice)<0) {
-//      	std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
-//      }
 
 
     std::cout << "[*] Initializing dongle with following configuration: " << std::endl;
     std::cout << "\t Center Frequency: " << frequency << " Hz" << std::endl;
     std::cout << "\t Sampling Rate: " << samplingRate << " samples/sec" << std::endl;
     std::cout << "\t Gain: " << gain << " dB" << std::endl;
-
-//  // Check if the converter is present 
-
-//  mConverterDriver.portPath = new char[CONVERTER_PATH.size() + 1];
-//  std::copy(CONVERTER_PATH.begin(), CONVERTER_PATH.end(), mConverterDriver.portPath);
-//  mConverterDriver.portPath[CONVERTER_PATH.size()] = '\0';
-
-//  if(!converterInit(&mConverterDriver)){
-//      std::cerr << "Warning: Failed to open the converter" << std::endl;
-//      //throw std::logic_error("Failed to open the converter");
-//  }
-//  else {
-//      std::cout << "Converter has been detected properly" << std::endl;
-//      mConverterEnabled = true;
-//  }
-
-//  delete[] mConverterDriver.portPath;
-
 
   	return 1;
 
@@ -174,58 +115,6 @@ void timespec_diff(struct timespec *start, struct timespec *stop,
     return;
 }
 
-typedef struct {
-		soapyDriver * dev;
-} callback_package_t;
-
-
-//static void capbuf_rtlsdr_callback( unsigned char * buf, uint32_t len, void * ctx) {
-//
-//    struct sched_param param;
-//	param.sched_priority = 20;
-//	pthread_setschedparam (pthread_self ( ) ,SCHED_FIFO,&param ) ;
-//
-//    struct timespec current_time;
-//	clock_gettime(CLOCK_REALTIME, &current_time);
-//
-//
-//    // Getting parameters
-//    callback_package_t * cp_p=(callback_package_t *)ctx;
-//	callback_package_t & cp=*cp_p;
-//    std::vector<std::complex<float>> capbuf_raw_p = *cp.buf;
-//    uint64_t center_freq = cp.center_frequency;
-//    ReaderWriterQueue< SpectrumSegment*> *queue = cp.queue;
-////    rtlsdr_dev_t * dev=cp.dev;
-//
-//    // we set init time to current time only in the first execution
-//    if (cp.init_time.tv_sec == 0)
-//        cp.init_time = current_time;
-//
-//    for (uint32_t t=0;t<len;t=t+2) {
-//        capbuf_raw_p.push_back( std::complex<float>(buf[t] ,buf[t+1] ));
-//	}
-//
-//    //std::cout << "[*] Sending segment " << current_time.tv_sec << "." << current_time.tv_nsec << std::endl;
-//    SpectrumSegment *segment = new SpectrumSegment(-1000, current_time, center_freq,
-//                                                   ElectrosenseContext::getInstance()->getSamplingRate(),
-//                                                   capbuf_raw_p);
-//
-//    queue->enqueue(segment);
-//    capbuf_raw_p.clear();
-//
-//    *cp.samples_read = *cp.samples_read + len;
-//
-//    struct timespec diff;
-//	timespec_diff(&cp.init_time, &current_time, &diff);
-//
-//	if (cp.duration != 0 && (diff.tv_sec >= cp.duration))
-//	{
-////		rtlsdr_cancel_async(dev);
-//        pthread_exit(NULL);
-//		return;
-//	}
-//}
-
 bool soapyDriver::isRunning () {
     return mRunning;
 }
@@ -239,7 +128,6 @@ static void *aux_thread (void *arg) {
 
 void soapyDriver::run () {
     mRunning = true;
-//        SyncSampling();
         pthread_t myth;
         pthread_create ( &myth, NULL, aux_thread, (void *)this );
         pthread_join(myth,NULL);
@@ -270,14 +158,7 @@ void soapyDriver::SyncSampling() {
 				{
           	previous_freq = center_freq;
 
-//          // Native RTL-SDR
-
-//              int r = 0;//rtlsdr_set_center_freq(mDevice, center_freq);
 						mDevice->setFrequency(SOAPY_SDR_RX,0,center_freq);	
-//              if (r != 0) {
-//                  std::cerr << "Error: unable to set center frequency" << std::endl;
-//                  mRunning = false;
-//              }
 
 //              // Reset the buffer
 						if (mStream != 0)
@@ -287,10 +168,6 @@ void soapyDriver::SyncSampling() {
 						}
 						mStream=mDevice->setupStream(SOAPY_SDR_RX,"CF32");
 						mDevice->activateStream(mStream);		
-//              if (false){//rtlsdr_reset_buffer(mDevice)<0) 
-//                  std::cerr << "Error: unable to reset RTLSDR buffer" << std::endl;
-//                  mRunning = false;
-//              }
 
 
 
@@ -327,12 +204,6 @@ void soapyDriver::SyncSampling() {
 						std::cout << r <<  " " << slen << std::endl;
             mRunning = false;
         }
-
-        //    for(int i = 0; i<n_read; i+= 2){
-        //        iq_buf[i] = 255-iq_buf[i];
-        //    }
-        //}
-
 
         std::vector<std::complex<float>> iq_vector;
 
@@ -381,7 +252,6 @@ int soapyDriver::stop()
 
     // Workaround: RPi does not work properly the cancellation of the async task
     if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") ==0 ) {
-//        rtlsdr_close(mDevice);
 				SoapySDR::Device::unmake(mDevice);
         mDevice = NULL;
     }

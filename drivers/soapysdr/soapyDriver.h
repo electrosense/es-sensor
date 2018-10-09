@@ -71,8 +71,6 @@ namespace electrosense {
 
         void SyncSampling();
 
-        void AsyncSampling();
-
         ReaderWriterQueue<int>* getQueueIn() { return NULL; }
         void setQueueIn (ReaderWriterQueue<int>* QueueIn ) {};
 
