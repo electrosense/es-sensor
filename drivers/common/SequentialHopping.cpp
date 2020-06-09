@@ -24,36 +24,32 @@
 
 SequentialHopping::SequentialHopping() {
 
+  mIndex = 0;
+  mFreqStep = (1 - ElectrosenseContext::getInstance()->getFreqOverlap()) *
+              ElectrosenseContext::getInstance()->getSamplingRate();
+
+  mTotalHops = (ElectrosenseContext::getInstance()->getMaxFreq() -
+                ElectrosenseContext::getInstance()->getMinFreq() + 1e6) /
+               mFreqStep;
+
+  mFreqs.insert(mFreqs.begin(),
+                ElectrosenseContext::getInstance()->getMinFreq() +
+                    0.5 * mFreqStep);
+
+  for (int i = 1; i < (int)mTotalHops; i++) {
+    mFreqs.insert(mFreqs.end(), mFreqs.at(i - 1) + mFreqStep);
+  }
+}
+uint64_t SequentialHopping::nextHop() {
+  uint64_t ret_freq = mFreqs.at(mIndex);
+  mIndex++;
+
+  if (mIndex >= mFreqs.size())
     mIndex = 0;
-    mFreqStep = (1 - ElectrosenseContext::getInstance()->getFreqOverlap() )* ElectrosenseContext::getInstance()->getSamplingRate();
 
-    mTotalHops = (ElectrosenseContext::getInstance()->getMaxFreq() - ElectrosenseContext::getInstance()->getMinFreq() + 1e6) / mFreqStep;
-
-    mFreqs.insert(mFreqs.begin(), ElectrosenseContext::getInstance()->getMinFreq() + 0.5 * mFreqStep);
-
-    for (int i=1; i<(int)mTotalHops; i++)
-    {
-        mFreqs.insert(mFreqs.end(), mFreqs.at(i-1) + mFreqStep);
-    }
-
-}
-uint64_t  SequentialHopping::nextHop()
-{
-    uint64_t ret_freq = mFreqs.at(mIndex);
-    mIndex++;
-
-    if (mIndex>=mFreqs.size())
-        mIndex = 0;
-
-    return ret_freq;
+  return ret_freq;
 }
 
-bool SequentialHopping::isRoundFinished()
-{
-    return mIndex == 0;
-}
+bool SequentialHopping::isRoundFinished() { return mIndex == 0; }
 
-SequentialHopping::~SequentialHopping() {
-
-}
-
+SequentialHopping::~SequentialHopping() {}

@@ -28,32 +28,35 @@
 
 #include "../misc/readerwriterqueue.h"
 
-
 class Component {
 
 public:
+  // Name identifier for the component
+  virtual std::string getNameId() = 0;
 
-    // Name identifier for the component
-    virtual std::string getNameId () = 0;
+  // Generic function to start the component in a separated thread.
+  void start() {
+    mThread = std::thread([this] { run(); });
+  };
 
-    // Generic function to start the component in a separated thread.
-    void start () {mThread = std::thread ( [this] { run(); } );};
+  bool isRunning() { return mRunning; };
 
-    // This function should implement how the thread must finish
-    virtual int stop () = 0;
+  // This function should implement how the thread must finish
+  virtual int stop() = 0;
 
-    // wait
-    void waitForThread () { mThread.join(); };
+  // wait
+  void waitForThread() { mThread.join(); };
+
 
 private:
+  // method that executes in the thread
+  virtual void run() = 0;
 
-    // method that executes in the thread
-    virtual void run () = 0;
+  // thread
+  std::thread mThread;
 
-
-    // thread
-    std::thread mThread;
-
+protected:
+  bool mRunning;
 };
 
 #endif

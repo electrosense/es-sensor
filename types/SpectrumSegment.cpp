@@ -24,34 +24,59 @@
 
 namespace electrosense {
 
-    SpectrumSegment::SpectrumSegment(long sensorId,
-                struct timespec timeStamp,
-                unsigned long long centerFrequency,
-                long samplingRate,
-                std::vector<std::complex<float>> samples) {
+SpectrumSegment::SpectrumSegment(long sensorId, struct timespec timeStamp,
+                                 unsigned long long centerFrequency,
+                                 long samplingRate,
+                                 std::vector<std::complex<float>> samples) {
 
-        mSensorID = sensorId;
-        mTimestamp = timeStamp;
-        mCenterFrequency = centerFrequency;
-        mSamplingRate = samplingRate;
-        mIQSamples = samples;
-        mAvroBuffer = NULL;
-    }
-
-    SpectrumSegment::~SpectrumSegment() {
-
-        mIQSamples.clear();
-        mIQSamples.shrink_to_fit();
-
-        mPSDIQSamples.clear();
-        mPSDIQSamples.shrink_to_fit();
-
-        mPSDValues.clear();
-        mPSDValues.shrink_to_fit();
-
-        if (mAvroBuffer)
-            free(mAvroBuffer);
-
-    }
+  mSensorID = sensorId;
+  mTimestamp = timeStamp;
+  mCenterFrequency = centerFrequency;
+  mSamplingRate = samplingRate;
+  mIQSamples = samples;
+  mAvroBuffer = NULL;
+  mSamples = NULL;
 
 }
+
+SpectrumSegment::SpectrumSegment(long sensorId, struct timespec timeStamp,
+                                 unsigned long long centerFrequency,
+                                 long samplingRate, unsigned char *samples,
+                                 uint32_t samples_len) {
+
+  mSensorID = sensorId;
+  mTimestamp = timeStamp;
+  mCenterFrequency = centerFrequency;
+  mSamplingRate = samplingRate;
+
+  mSamples_len = samples_len;
+
+  mSamples = (unsigned char *)malloc(sizeof(unsigned char) * samples_len);
+  memcpy(mSamples, samples, sizeof(unsigned char) * samples_len);
+
+  mAvroBuffer = NULL;
+}
+
+
+SpectrumSegment::~SpectrumSegment() {
+
+  mIQSamples.clear();
+  mIQSamples.shrink_to_fit();
+
+  mIQSamplesFreq.clear();
+  mIQSamplesFreq.shrink_to_fit();
+
+  mPSDValues.clear();
+  mPSDValues.shrink_to_fit();
+
+  mIQ_time_v2.clear();
+  mIQ_time_v2.shrink_to_fit();
+
+  if (mSamples)
+    free(mSamples);
+
+  if (mAvroBuffer)
+    free(mAvroBuffer);
+}
+
+} // namespace electrosense

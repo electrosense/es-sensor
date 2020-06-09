@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright (C) 2018 by IMDEA Networks Institute
  *
@@ -20,30 +22,38 @@
  *
  */
 
-#ifndef ES_SENSOR_REMOVEDC_H
-#define ES_SENSOR_REMOVEDC_H
+#ifndef ELECTROSENSE_SENSOR_PSDFAST_H
+#define ELECTROSENSE_SENSOR_PSDFAST_H
 
 #include <algorithm>
 #include <complex.h>
+#include <error.h>
+#include <liquid/liquid.h>
 #include <unistd.h>
 #include <vector>
+#include <cmath>
 
 #include "../context/ElectrosenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
+#include <json-c/json.h>
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
 namespace electrosense {
 
-class RemoveDC : public Component,
-                 public Communication<SpectrumSegment *, SpectrumSegment *> {
+class PSDFast : public Component,
+                public Communication<SpectrumSegment *, SpectrumSegment *> {
 
 public:
-  RemoveDC();
+  PSDFast();
 
-  ~RemoveDC(){};
+  ~PSDFast(){};
 
-  std::string getNameId() { return std::string("RemoveDC"); };
+  std::string getNameId() { return std::string("PSDFast"); };
 
   int stop();
 
@@ -61,8 +71,13 @@ private:
 
   ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
   ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+
+  struct sockaddr_in si_other;
+  int mSocket;
+
+  int slen = sizeof(si_other);
 };
 
 } // namespace electrosense
 
-#endif // ES_SENSOR_REMOVEDC_H
+#endif // ES_SENSOR_AVERAGING_H

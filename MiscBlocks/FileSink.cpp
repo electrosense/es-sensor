@@ -20,61 +20,57 @@
  *
  */
 
-
 #include "FileSink.h"
 
 namespace electrosense {
 
-    FileSink::FileSink(std::string filename) {
+FileSink::FileSink(std::string filename) {
 
-        mFileName = filename;
-        mOutputFile.open(filename);
-    }
-
-
-    void FileSink::run() {
-
-        std::cout << "[*] FileSink block running .... " << std::endl;
-
-        mRunning = true;
-        SpectrumSegment* segment;
-
-        if (mQueueIn==NULL) {
-            throw std::logic_error("Queue[IN] is NULL!");
-        }
-
-        while(mRunning) {
-
-            if (mQueueIn && mQueueIn->try_dequeue(segment)) {
-
-                mOutputFile << segment->getTimeStamp().tv_sec << "." <<  segment->getTimeStamp().tv_nsec << "," ;
-                mOutputFile << segment->getCenterFrequency() << ",";
-                std::vector<float> psdsamples = segment->getPSDValues();
-
-                for (unsigned int i=0; i<psdsamples.size(); i++)
-                    mOutputFile << std::setprecision(5) << psdsamples.at(i) << "," ;
-
-                mOutputFile << std::endl;
-
-                mOutputFile.flush();
-
-                delete(segment);
-
-            }
-            else
-                usleep(1);
-        }
-
-        mOutputFile.close();
-    }
-
-
-    int FileSink::stop() {
-
-        mRunning = false;
-        waitForThread();
-
-        return 1;
-
-    }
+  mFileName = filename;
+  mOutputFile.open(filename);
 }
+
+void FileSink::run() {
+
+  std::cout << "[*] FileSink block running .... " << std::endl;
+
+  mRunning = true;
+  SpectrumSegment *segment;
+
+  if (mQueueIn == NULL) {
+    throw std::logic_error("Queue[IN] is NULL!");
+  }
+
+  while (mRunning) {
+
+    if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+
+      mOutputFile << segment->getTimeStamp().tv_sec << "."
+                  << segment->getTimeStamp().tv_nsec << ",";
+      mOutputFile << segment->getCenterFrequency() << ",";
+      std::vector<float> psdsamples = segment->getPSDValues();
+
+      for (unsigned int i = 0; i < psdsamples.size(); i++)
+        mOutputFile << std::setprecision(5) << psdsamples.at(i) << ",";
+
+      mOutputFile << std::endl;
+
+      mOutputFile.flush();
+
+      delete (segment);
+
+    } else
+      usleep(1);
+  }
+
+  mOutputFile.close();
+}
+
+int FileSink::stop() {
+
+  mRunning = false;
+  waitForThread();
+
+  return 1;
+}
+} // namespace electrosense

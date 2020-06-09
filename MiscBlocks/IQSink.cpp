@@ -22,73 +22,85 @@
 
 #include "IQSink.h"
 
-
 namespace electrosense {
 
-    IQSink::IQSink(std::string filename) {
+IQSink::IQSink(std::string filename) {
 
-        mFileName = filename;
-        mOutputFile.open(filename, std::ios::out | std::ios::binary);
-    }
+  mFileName = filename;
 
+  mOutputFile.open(filename, std::ios::out | std::ios::binary);
 
-    void IQSink::run() {
-
-        int samples_c = 0;
-        std::cout << "[*] IQSink block running .... " << std::endl;
-
-        mRunning = true;
-        SpectrumSegment* segment;
-
-        if (mQueueIn==NULL) {
-            throw std::logic_error("Queue[IN] is NULL!");
-        }
-
-        while(mRunning) {
-
-            if (mQueueIn && mQueueIn->try_dequeue(segment)) {
-
-                //std::cout << "[o] Receiving segment " << segment->getTimeStamp().tv_sec << "." << segment->getTimeStamp().tv_nsec << std::endl;
-
-                std::vector<std::complex<float>> iq = segment->getIQSamples();
-
-                for (unsigned int i=0; i<iq.size(); i++) {
-                    //float re = (iq[i].real() -127.0)/128.0;
-                    // float im = (iq[i].imag() -127.0)/128.0;
-                    float re = (iq[i].real());
-                    float im = (iq[i].imag());
-
-
-                    mOutputFile.write(reinterpret_cast<const char *>( &re ), sizeof(float));
-                    mOutputFile.write(reinterpret_cast<const char *>( &im ), sizeof(float));
-
-                    samples_c = samples_c + 2;
-
-                }
-
-
-                mOutputFile.flush();
-
-                delete(segment);
-
-            }
-            else
-                usleep(1);
-        }
-
-        mOutputFile.close();
-
-        //std::cout << "[*] IQSink: samples written: " << samples_c << std::endl;
-
-    }
-
-
-    int IQSink::stop() {
-
-        mRunning = false;
-        waitForThread();
-
-        return 1;
-
-    }
 }
+
+float IQSink::remove_DC (float a) {
+    return (a-127.4)/128.0;
+}
+
+void IQSink::run() {
+
+  int samples_c = 0;
+  std::cout << "[*] IQSink block running .... " << std::endl;
+
+  mRunning = true;
+  SpectrumSegment *segment;
+
+  if (mQueueIn == NULL) {
+    throw std::logic_error("Queue[IN] is NULL!");
+  }
+
+  unsigned char v[2];
+  while (mRunning || mQueueIn->size_approx() != 0) {
+
+    if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+
+        /*
+        unsigned char *buf = segment->get_buffer();
+        int buf_len = segment->get_buffer_len();
+
+
+        // Next line save raw data in sequences of IQ 4bytes each one
+        std::copy(buf, buf + buf_len, floatArray);
+
+        // Normalize between -1 and 1
+        std::vector<float> v_float (floatArray, floatArray + sizeof(float)*buf_len);
+
+        std::transform(v_float.begin(), v_float.end(), v_float.begin(), std::bind(&IQSink::remove_DC, this, std::placeholders::_1));
+
+         */
+
+        if (ElectrosenseContext::getInstance()->getOutputType()==OUTPUT_TYPE_BYTE) {
+            unsigned char *buf = segment->get_buffer();
+            int buf_len = segment->get_buffer_len();
+
+            mOutputFile.write(reinterpret_cast<const char *>(buf), sizeof(unsigned char) * buf_len);
+
+            samples_c = samples_c + buf_len;
+        }
+        else if (ElectrosenseContext::getInstance()->getOutputType()==OUTPUT_TYPE_FLOAT) {
+
+            std::vector<float> v_float = segment->getIQ_time_v2();
+
+            int buf_len = segment->get_buffer_len();
+            mOutputFile.write(reinterpret_cast<const char *>(v_float.data()), sizeof(float) * v_float.size());
+
+            samples_c = samples_c + v_float.size();
+        }
+
+        delete (segment);
+
+    } else
+      usleep(0.1);
+  }
+
+  mOutputFile.close();
+
+  std::cout << "[*] IQSink: samples written: " << samples_c << std::endl;
+}
+
+int IQSink::stop() {
+
+  mRunning = false;
+  waitForThread();
+  return 1;
+}
+} // namespace electrosense

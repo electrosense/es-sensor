@@ -23,64 +23,59 @@
 #ifndef ES_SENSOR_AVROSERIALIZATION_H
 #define ES_SENSOR_AVROSERIALIZATION_H
 
-
-#include <vector>
+#include <algorithm>
 #include <complex.h>
 #include <unistd.h>
-#include <algorithm>
+#include <vector>
 
-
-#include "../drivers/Component.h"
-#include "../drivers/Communication.h"
-#include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 extern "C" {
-#include <sys/ioctl.h>
+#include <avro.h>
 #include <net/if.h>
 #include <netinet/in.h>
-#include <avro.h>
+#include <sys/ioctl.h>
 };
 
 namespace electrosense {
 
+class AvroSerialization
+    : public Component,
+      public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-    class AvroSerialization: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
+public:
+  AvroSerialization();
 
-    public:
+  ~AvroSerialization(){};
 
-        AvroSerialization();
+  std::string getNameId() { return std::string("AvroSerialization"); };
 
-        ~AvroSerialization(){};
+  int stop();
 
-        std::string getNameId () { return std::string("AvroSerialization"); };
+  void PSD();
 
-        int stop();
+  void IQ();
 
-        void PSD();
+  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+    mQueueIn = QueueIn;
+  };
 
-        void IQ();
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
-        void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
+private:
+  void run();
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return mQueueOut; };
-        void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
+  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-    private:
+  int get_mac_address_eth0(long long *mac_dec);
+};
 
-        void run();
+} // namespace electrosense
 
-        bool mRunning;
-
-        ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
-        ReaderWriterQueue<SpectrumSegment*>* mQueueIn;
-
-        int get_mac_address_eth0(long long *mac_dec);
-
-    };
-
-
-}
-
-#endif //ES_SENSOR_AVROSERIALIZATION_H
+#endif // ES_SENSOR_AVROSERIALIZATION_H

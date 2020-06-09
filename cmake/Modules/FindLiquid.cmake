@@ -12,11 +12,18 @@ endif (LIQUID_INCLUDES)
 
 find_path (LIQUID_INCLUDES liquid/liquid.h)
 
-find_library (LIQUID_LIBRARIES NAMES liquid )
+find_library (LIQUID_LIBRARIES
+        NAMES liquid
+        PATH  /usr/lib/x86_64-linux-gnu/
+        /usr/pkgs64/lib
+        /usr/lib64
+        /usr/lib
+        /usr/local/lib
+        /usr/lib/arm-linux-gnueabihf/)
 
-# handle the QUIETLY and REQUIRED arguments and set LIQUID_FOUND to TRUE if
-# all listed variables are TRUE
-include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (LIQUID DEFAULT_MSG LIQUID_LIBRARIES LIQUID_INCLUDES REQUIRED)
+include(FindPackageHandleStandardArgs)
 
-#mark_as_advanced (LIQUID_LIBRARIES LIQUID_INCLUDES)
+find_package_handle_standard_args(LIQUID DEFAULT_MSG LIQUID_LIBRARIES LIQUID_INCLUDES)
+
+mark_as_advanced(LIQUID_LIBRARIES LIQUID_INCLUDE)
+

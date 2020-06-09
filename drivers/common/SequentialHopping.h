@@ -21,7 +21,6 @@
  *
  */
 
-
 #ifndef SRC_SEQUENTIALHOPPING_H_
 #define SRC_SEQUENTIALHOPPING_H_
 
@@ -30,21 +29,19 @@
 
 class SequentialHopping {
 public:
+  SequentialHopping();
+  virtual ~SequentialHopping();
 
-    SequentialHopping();
-    virtual ~SequentialHopping();
+  uint64_t nextHop();
 
-    uint64_t nextHop();
-
-    bool isRoundFinished();
+  bool isRoundFinished();
 
 private:
+  uint64_t mFreqStep;
+  uint64_t mTotalHops;
+  std::vector<uint64_t> mFreqs;
 
-    uint64_t mFreqStep;
-    uint64_t mTotalHops;
-    std::vector<uint64_t> mFreqs;
-
-    uint64_t mIndex;
+  uint64_t mIndex;
 };
 
 #endif /* SRC_SEQUENTIALHOPPING_H_ */

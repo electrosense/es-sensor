@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 by IMDEA Networks Institute
+ * Copyright (C) 2019 by IMDEA Networks Institute
  *
  * This file is part of Electrosense.
  *
@@ -20,13 +20,15 @@
  *
  */
 
-#ifndef ES_SENSOR_REMOVEDC_H
-#define ES_SENSOR_REMOVEDC_H
+#ifndef ES_SENSOR_REMOVEDCRTL_H
+#define ES_SENSOR_REMOVEDCRTL_H
 
 #include <algorithm>
 #include <complex.h>
 #include <unistd.h>
 #include <vector>
+#include <string.h>
+#include <functional>
 
 #include "../context/ElectrosenseContext.h"
 #include "../drivers/Communication.h"
@@ -35,34 +37,37 @@
 
 namespace electrosense {
 
-class RemoveDC : public Component,
-                 public Communication<SpectrumSegment *, SpectrumSegment *> {
+    class RemoveDCRTL : public Component,
+                     public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-public:
-  RemoveDC();
+    public:
+        RemoveDCRTL();
 
-  ~RemoveDC(){};
+        ~RemoveDCRTL(){};
 
-  std::string getNameId() { return std::string("RemoveDC"); };
+        std::string getNameId() { return std::string("RemoveDC-RTL"); };
 
-  int stop();
+        int stop();
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+        ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+        void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+            mQueueIn = QueueIn;
+        };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+        ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+        void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-private:
-  void run();
+    private:
+        void run();
+        float remove_DC (float a);
 
+        ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+        ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
-};
+        const int MAX_SEGMENT = 2400000;
+
+    };
 
 } // namespace electrosense
 
-#endif // ES_SENSOR_REMOVEDC_H
+#endif // ES_SENSOR_REMOVEDCRTL_H

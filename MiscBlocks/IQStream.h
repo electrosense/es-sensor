@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2018 by IMDEA Networks Institute
  *
@@ -17,39 +18,61 @@
  * along with RTL-Spec.  If not, see <http://www.gnu.org/licenses/>.
  *
  * 	Authors: 	Roberto Calvo-Palomino <roberto.calvo@imdea.org>
+ * 	            Roberto
  *
  */
-#ifndef ELECTROSENSE_SENSOR_IQSINK_H
-#define ELECTROSENSE_SENSOR_IQSINK_H
+#ifndef ELECTROSENSE_SENSOR_IQSTREAM_H
+#define ELECTROSENSE_SENSOR_IQSTREAM_H
 
 #include <algorithm>
 #include <complex.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <unistd.h>
 #include <vector>
+
+//#include "mysocket.h"
+
+#include <endian.h>
+#include <errno.h>
+#include <error.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <functional>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "../context/ElectrosenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
+#include "Filter/CIC/CIC.h"
+#include "Filter/FIR/FIRDesign.h"
+#include "Filter/FIR/RationalFIRFilter.h"
+#include "Filter/Resampler/Downsampler.h"
+
 namespace electrosense {
 
-class IQSink : public Component,
-               public Communication<SpectrumSegment *, SpectrumSegment *> {
+class IQStream : public Component,
+                 public Communication<SpectrumSegment *, SpectrumSegment *> {
 
 public:
-  IQSink();
+  IQStream();
 
-  IQSink(std::string filename);
+  ~IQStream(){};
 
-  ~IQSink(){};
-
-  std::string getNameId() { return std::string("IQSink"); };
+  std::string getNameId() { return std::string("IQStream"); };
 
   int stop();
 
@@ -63,16 +86,46 @@ public:
   ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
   void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
+  bool getDecoderState() {
+    mMutex.lock();
+    bool state = mDecoderState;
+    mMutex.unlock();
+    return state;
+  };
+
 private:
+  void initSocket();
+  ssize_t sendIQSamples(int fd, uint64_t centerFrequency, uint32_t gain,
+                        uint32_t nSamples, const int8_t *iq);
+
   void run();
-  float remove_DC (float a );
+
+  void setDecoderState(bool state) {
+    mMutex.lock();
+    mDecoderState = state;
+    mMutex.unlock();
+  };
+
+  std::mutex mMutex;
+  bool mDecoderState;
 
 
   ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
   std::string mFileName;
-  std::ofstream mOutputFile;
 
+  struct Header {
+    uint64_t centerFrequency;
+    uint32_t gain;
+    uint32_t nSamples;
+  } __attribute__((packed));
+
+  int m_cfd;
+  int m_fd;
+  bool mSocketEnable;
+  struct sockaddr_un addr;
+
+  int mChildPID;
 };
 
 } // namespace electrosense

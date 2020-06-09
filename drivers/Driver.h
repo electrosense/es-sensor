@@ -21,36 +21,28 @@
  *
  */
 
-
 #ifndef ES_SENSOR_DRIVER_H
 #define ES_SENSOR_DRIVER_H
 
-#include "../types/SpectrumSegment.h"
 #include "../misc/readerwriterqueue.h"
-
+#include "../types/SpectrumSegment.h"
 
 class Driver {
 
 public:
+  Driver(){};
 
-    Driver() {};
+  ~Driver(){};
 
-    ~Driver() {};
+  // Open the device
+  virtual int open(std::string device) = 0;
 
-    // Open the device
-    virtual int open(std::string device) = 0;
-
-    // Close the device
-    virtual int close() = 0;
+  // Close the device
+  virtual int close() = 0;
 
 
-    //
-    virtual bool isRunning() = 0;
 
 private:
-
-
 };
 
-
-#endif //ES_SENSOR_DRIVER_H
+#endif // ES_SENSOR_DRIVER_H

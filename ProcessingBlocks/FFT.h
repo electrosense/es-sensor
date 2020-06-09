@@ -23,51 +23,50 @@
 #ifndef ES_SENSOR_FFT_H
 #define ES_SENSOR_FFT_H
 
-#include <vector>
-#include <complex.h>
-#include <unistd.h>
 #include <algorithm>
+#include <complex.h>
 #include <liquid/liquid.h>
+#include <unistd.h>
+#include <vector>
 
-#include "../drivers/Component.h"
-#include "../drivers/Communication.h"
-#include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 namespace electrosense {
 
-    class FFT: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
+class FFT : public Component,
+            public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-      public:
+public:
+  FFT();
 
-        FFT();
+  ~FFT(){};
 
-        ~FFT(){};
+  std::string getNameId() { return std::string("FFT"); };
 
-        std::string getNameId () { return std::string("FFT"); };
+  int stop();
 
-        int stop();
+  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+    mQueueIn = QueueIn;
+  };
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
-        void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return mQueueOut; };
-        void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
+private:
+  void run();
 
-    private:
+  void ComputeFFT(std::vector<SpectrumSegment *> &segments);
 
-        void run();
+  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-        void ComputeFFT (std::vector<SpectrumSegment*>& segments);
+  std::vector<SpectrumSegment *> mFFTBatch;
+};
 
-        bool mRunning;
+} // namespace electrosense
 
-        ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
-        ReaderWriterQueue<SpectrumSegment*>* mQueueIn;
-
-        std::vector<SpectrumSegment*> mFFTBatch;
-    };
-
-}
-
-#endif //ES_SENSOR_FFT_H
+#endif // ES_SENSOR_FFT_H

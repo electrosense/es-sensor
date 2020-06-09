@@ -24,17 +24,29 @@
 #define ES_SENSOR_RTLSDR_H
 
 #include <iostream>
-#include <string>
 #include <rtl-sdr.h>
+#include <string>
 #include <thread>
 #include <zconf.h>
 
-#include "../Driver.h"
-#include "../Component.h"
-#include "../Communication.h"
-#include "rtlsdrDriver.h"
+#include <endian.h>
+#include <errno.h>
+#include <error.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+
 #include "../../context/ElectrosenseContext.h"
+#include "../Communication.h"
+#include "../Component.h"
+#include "../Driver.h"
 #include "../common/SequentialHopping.h"
+#include "rtlsdrDriver.h"
 
 // Workaround issue #4 , complex.h breaks openssl's RSA library
 //   include RSA before any mention to complex.h
@@ -47,68 +59,59 @@ extern "C" {
 
 namespace electrosense {
 
+class rtlsdrDriver : public Driver,
+                     public Component,
+                     public Communication<int, SpectrumSegment *> {
 
+public:
+  rtlsdrDriver();
 
-    class rtlsdrDriver: public Driver, public Component, public Communication<int, SpectrumSegment*> {
+  ~rtlsdrDriver();
 
-    public:
+  // Open the device
+  int open(std::string deviceId);
 
-        rtlsdrDriver();
+  // Close the device
+  int close();
 
-        ~rtlsdrDriver();
+  // Stop
+  int stop();
 
-        // Open the device
-        int open(std::string deviceId);
+  void SyncSampling();
 
-        // Close the device
-        int close();
+  void AsyncSampling();
 
-        // Stop
-        int stop();
+  ReaderWriterQueue<int> *getQueueIn() { return NULL; }
+  void setQueueIn(ReaderWriterQueue<int> *QueueIn){};
 
-        // Running
-        bool isRunning ();
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut2() { return mQueueOut2; };
+  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-        void SyncSampling();
+  std::string getNameId() { return std::string("rtlsdrDriver"); };
 
-        void AsyncSampling();
+private:
+  const std::string CONVERTER_PATH = "/dev/esenseconv";
 
-        ReaderWriterQueue<int>* getQueueIn() { return NULL; }
-        void setQueueIn (ReaderWriterQueue<int>* QueueIn ) {};
+  // Run the driver in the thread
+  void run();
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return mQueueOut; };
-        void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
+  int mDeviceId;
+  rtlsdr_dev_t *mDevice;
 
-        std::string getNameId () { return std::string("rtlsdrDriver"); };
+  SequentialHopping *mSeqHopping;
 
+  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+  ReaderWriterQueue<SpectrumSegment *> *mQueueOut2;
 
-    private:
+  converter mConverterDriver;
+  bool mConverterEnabled;
 
-        const std::string CONVERTER_PATH = "/dev/esenseconv";
+  // static void* socket_thread( void *arg);
 
-        // Run the driver in the thread
-        void run();
+  std::vector<std::complex<float>> m_capbuf_raw;
+};
 
-        bool mRunning;
+} // namespace electrosense
 
-        int mDeviceId;
-        rtlsdr_dev_t* mDevice;
-
-        SequentialHopping* mSeqHopping;
-
-        ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
-
-
-        converter mConverterDriver;
-        bool mConverterEnabled;
-
-
-
-
-        std::vector<std::complex<float>> m_capbuf_raw;
-
-    };
-
-}
-
-#endif //ES_SENSOR_RTLSDR_H
+#endif // ES_SENSOR_RTLSDR_H

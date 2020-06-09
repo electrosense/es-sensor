@@ -23,58 +23,54 @@
 #ifndef ES_SENSOR_FILESINK_H
 #define ES_SENSOR_FILESINK_H
 
-#include <vector>
-#include <complex.h>
-#include <unistd.h>
 #include <algorithm>
-#include <iostream>
+#include <complex.h>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <unistd.h>
+#include <vector>
 
-#include "../drivers/Component.h"
-#include "../drivers/Communication.h"
-#include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 namespace electrosense {
 
-    class FileSink: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
+class FileSink : public Component,
+                 public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-    public:
+public:
+  FileSink();
 
-        FileSink();
+  FileSink(std::string filename);
 
-        FileSink(std::string filename);
+  ~FileSink(){};
 
-        ~FileSink(){};
+  std::string getNameId() { return std::string("FileSink"); };
 
-        std::string getNameId () { return std::string("FileSink"); };
+  int stop();
 
-        int stop();
+  void setFileName(std::string filename) { mFileName = filename; };
 
-        void setFileName (std::string filename) { mFileName = filename; };
+  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+    mQueueIn = QueueIn;
+  };
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
-        void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
+  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return NULL; };
-        void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
+private:
+  void run();
 
-    private:
+  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-        void run();
+  std::string mFileName;
+  std::ofstream mOutputFile;
+};
 
-        bool mRunning;
+} // namespace electrosense
 
-        ReaderWriterQueue<SpectrumSegment*>* mQueueIn;
-
-        std::string mFileName;
-        std::ofstream mOutputFile;
-
-
-    };
-
-}
-
-
-#endif //ES_SENSOR_FILESINK_H
+#endif // ES_SENSOR_FILESINK_H

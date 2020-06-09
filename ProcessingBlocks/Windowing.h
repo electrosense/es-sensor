@@ -23,54 +23,50 @@
 #ifndef ES_SENSOR_WINDOWING_H
 #define ES_SENSOR_WINDOWING_H
 
-#include <vector>
-#include <complex.h>
-#include <unistd.h>
 #include <algorithm>
+#include <complex.h>
 #include <liquid/liquid.h>
+#include <unistd.h>
+#include <vector>
+#include <cmath>
 
-
-#include "../drivers/Component.h"
-#include "../drivers/Communication.h"
-#include "../types/SpectrumSegment.h"
 #include "../context/ElectrosenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 namespace electrosense {
 
-    class Windowing: public Component, public Communication<SpectrumSegment*,SpectrumSegment*> {
+class Windowing : public Component,
+                  public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-    public:
+public:
+  enum W_FUNCTION { HAMMING = 0, BLACKMAN_HARRIS };
 
-        enum W_FUNCTION {
-            HAMMING=0,
-            BLACKMAN_HARRIS};
+  Windowing(W_FUNCTION window_func);
 
-        Windowing(W_FUNCTION window_func);
+  ~Windowing(){};
 
-        ~Windowing(){};
+  std::string getNameId() { return std::string("Windowing"); };
 
-        std::string getNameId () { return std::string("Windowing"); };
+  int stop();
 
-        int stop();
+  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+    mQueueIn = QueueIn;
+  };
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueIn() { return mQueueIn; }
-        void setQueueIn (ReaderWriterQueue<SpectrumSegment*>* QueueIn ) { mQueueIn = QueueIn;};
+  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-        ReaderWriterQueue<SpectrumSegment*>* getQueueOut() { return mQueueOut; };
-        void setQueueOut (ReaderWriterQueue<SpectrumSegment*>* QueueOut) {};
+private:
+  void run();
 
-    private:
+  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-        void run();
+  std::vector<float> w_func;
+};
+} // namespace electrosense
 
-        bool mRunning;
-
-        ReaderWriterQueue<SpectrumSegment*>* mQueueOut;
-        ReaderWriterQueue<SpectrumSegment*>* mQueueIn;
-
-        std::vector<float> w_func;
-    };
-}
-
-
-#endif //ES_SENSOR_WINDOWING_H
+#endif // ES_SENSOR_WINDOWING_H
