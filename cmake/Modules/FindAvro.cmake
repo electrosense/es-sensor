@@ -18,6 +18,7 @@ FIND_LIBRARY(AVRO_LIBRARY
         /usr/lib
         /usr/local/lib
         /usr/lib/arm-linux-gnueabihf/
+        /usr/lib/aarch64-linux-gnu
         NO_DEFAULT_PATH
         )
 
