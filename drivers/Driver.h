@@ -21,28 +21,26 @@
  *
  */
 
-#ifndef ES_SENSOR_DRIVER_H
-#define ES_SENSOR_DRIVER_H
+#ifndef ORFS_SENSOR_DRIVER_H
+#define ORFS_SENSOR_DRIVER_H
 
 #include "../misc/readerwriterqueue.h"
 #include "../types/SpectrumSegment.h"
 
 class Driver {
 
-public:
-  Driver(){};
+  public:
+    Driver(){};
 
-  ~Driver(){};
+    ~Driver(){};
 
-  // Open the device
-  virtual int open(std::string device) = 0;
+    // Open the device
+    virtual int open(std::string device) = 0;
 
-  // Close the device
-  virtual int close() = 0;
+    // Close the device
+    virtual int close() = 0;
 
-
-
-private:
+  private:
 };
 
-#endif // ES_SENSOR_DRIVER_H
+#endif // ORFS_SENSOR_DRIVER_H

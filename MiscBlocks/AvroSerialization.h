@@ -20,18 +20,18 @@
  *
  */
 
-#ifndef ES_SENSOR_AVROSERIALIZATION_H
-#define ES_SENSOR_AVROSERIALIZATION_H
+#ifndef ORFS_SENSOR_AVROSERIALIZATION_H
+#define ORFS_SENSOR_AVROSERIALIZATION_H
+
+#include "../context/OpenRFSenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 #include <algorithm>
 #include <complex.h>
 #include <unistd.h>
 #include <vector>
-
-#include "../context/ElectrosenseContext.h"
-#include "../drivers/Communication.h"
-#include "../drivers/Component.h"
-#include "../types/SpectrumSegment.h"
 
 extern "C" {
 #include <avro.h>
@@ -40,42 +40,43 @@ extern "C" {
 #include <sys/ioctl.h>
 };
 
-namespace electrosense {
+namespace openrfsense {
 
-class AvroSerialization
-    : public Component,
-      public Communication<SpectrumSegment *, SpectrumSegment *> {
+class AvroSerialization :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-public:
-  AvroSerialization();
+  public:
+    AvroSerialization();
 
-  ~AvroSerialization(){};
+    ~AvroSerialization(){};
 
-  std::string getNameId() { return std::string("AvroSerialization"); };
+    std::string getNameId() { return std::string("AvroSerialization"); };
 
-  int stop();
+    int stop();
 
-  void PSD();
+    void PSD();
 
-  void IQ();
+    void IQ();
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+      mQueueIn = QueueIn;
+    };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-private:
-  void run();
+  private:
+    void run();
+    void parseSchema(const char *filename, avro_schema_t &avro_schema);
+    void writeMetadata(avro_value_t &base, SpectrumSegment *segment);
+    int get_mac_address_eth0(char *mac);
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
-
-  int get_mac_address_eth0(long long *mac_dec);
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_AVROSERIALIZATION_H
+#endif // ORFS_SENSOR_AVROSERIALIZATION_H

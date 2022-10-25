@@ -25,15 +25,15 @@
 SequentialHopping::SequentialHopping() {
 
   mIndex = 0;
-  mFreqStep = (1 - ElectrosenseContext::getInstance()->getFreqOverlap()) *
-              ElectrosenseContext::getInstance()->getSamplingRate();
+  mFreqStep = (1 - OpenRFSenseContext::getInstance()->getFreqOverlap()) *
+              OpenRFSenseContext::getInstance()->getSamplingRate();
 
-  mTotalHops = (ElectrosenseContext::getInstance()->getMaxFreq() -
-                ElectrosenseContext::getInstance()->getMinFreq() + 1e6) /
+  mTotalHops = (OpenRFSenseContext::getInstance()->getMaxFreq() -
+                OpenRFSenseContext::getInstance()->getMinFreq() + 1e6) /
                mFreqStep;
 
   mFreqs.insert(mFreqs.begin(),
-                ElectrosenseContext::getInstance()->getMinFreq() +
+                OpenRFSenseContext::getInstance()->getMinFreq() +
                     0.5 * mFreqStep);
 
   for (int i = 1; i < (int)mTotalHops; i++) {

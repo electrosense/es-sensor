@@ -24,17 +24,16 @@
 #ifndef TLS_H /* Tansport Layer Security */
 #define TLS_H
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
-#include <string.h>
-
 #include "TCP.h"
+
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <string.h>
 
 typedef struct {
     TCP_Connection *tcp_c;
-    SSL_CTX        *ssl_ctx;
-    SSL            *ssl;
+    SSL_CTX *ssl_ctx;
+    SSL *ssl;
 } TLS_Connection;
 
 /*!
@@ -70,12 +69,14 @@ typedef struct {
  * 	-5: mismatching certificate and private key
  * 	-6: loading CA certificate failed
  */
-int tls_init(TLS_Connection **tls_c, TCP_Connection *tcp_c, const SSL_METHOD *method,
-             const char *ca_cert_file, const char *cert_file, const char *key_file,
-             const char *hostaddr, const int portnum);
-int tls_init_p(TLS_Connection **tls_c, TCP_Connection *tcp_c, const SSL_METHOD *method,
-               const char *ca_cert_file, const char *cert_file, const char *key_file,
-               const char *hostaddr, const int portnum);
+int tls_init(
+    TLS_Connection **tls_c, TCP_Connection *tcp_c, const SSL_METHOD *method,
+    const char *ca_cert_file, const char *cert_file, const char *key_file,
+    const char *hostaddr, const int portnum);
+int tls_init_p(
+    TLS_Connection **tls_c, TCP_Connection *tcp_c, const SSL_METHOD *method,
+    const char *ca_cert_file, const char *cert_file, const char *key_file,
+    const char *hostaddr, const int portnum);
 int tls_accept(TLS_Connection *c);
 int tls_accept_p(TLS_Connection *c);
 int tls_connect(TLS_Connection *c);

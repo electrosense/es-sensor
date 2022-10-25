@@ -20,8 +20,13 @@
  *
  */
 
-#ifndef ES_SENSOR_FFT_H
-#define ES_SENSOR_FFT_H
+#ifndef ORFS_SENSOR_FFT_H
+#define ORFS_SENSOR_FFT_H
+
+#include "../context/OpenRFSenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 #include <algorithm>
 #include <complex.h>
@@ -29,44 +34,38 @@
 #include <unistd.h>
 #include <vector>
 
-#include "../context/ElectrosenseContext.h"
-#include "../drivers/Communication.h"
-#include "../drivers/Component.h"
-#include "../types/SpectrumSegment.h"
+namespace openrfsense {
 
-namespace electrosense {
+class FFT : public Component, public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-class FFT : public Component,
-            public Communication<SpectrumSegment *, SpectrumSegment *> {
+  public:
+    FFT();
 
-public:
-  FFT();
+    ~FFT(){};
 
-  ~FFT(){};
+    std::string getNameId() { return std::string("FFT"); };
 
-  std::string getNameId() { return std::string("FFT"); };
+    int stop();
 
-  int stop();
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+  private:
+    void run();
 
-private:
-  void run();
+    void ComputeFFT(std::vector<SpectrumSegment *> &segments);
 
-  void ComputeFFT(std::vector<SpectrumSegment *> &segments);
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
-
-  std::vector<SpectrumSegment *> mFFTBatch;
+    std::vector<SpectrumSegment *> mFFTBatch;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_FFT_H
+#endif // ORFS_SENSOR_FFT_H

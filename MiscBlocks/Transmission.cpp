@@ -23,16 +23,15 @@
 // Workaround issue #4 , complex.h breaks openssl's RSA library
 //   include RSA before any mention to complex.h (in Transmission.h)
 #include "Transmission.h"
+
 #include "../misc/TLS.h"
-#include <netinet/in.h>
+
 #include <functional>
+#include <netinet/in.h>
 
-namespace electrosense {
+namespace openrfsense {
 
-Transmission* transmission;
-
-
-
+Transmission *transmission;
 
 /* Catch Signal Handler */
 void Transmission::signal_callback_handler(int signum) {
@@ -43,195 +42,197 @@ void Transmission::signal_callback_handler(int signum) {
 
 Transmission::Transmission() {
 
-  transmission = this;
-  mStrHosts = ElectrosenseContext::getInstance()->getTlsHosts();
-  parse_tls_hosts();
+    transmission = this;
+    mStrHosts = OpenRFSenseContext::getInstance()->getTlsHosts();
+    parse_tls_hosts();
 
-  tls_con = NULL;
-  tcp_con = NULL;
+    tls_con = NULL;
+    tcp_con = NULL;
 
-  signal(SIGPIPE, &Transmission::signal_callback_handler);
-
+    signal(SIGPIPE, &Transmission::signal_callback_handler);
 }
 
 void Transmission::checkConnection() {
 
-  if (tls_con == NULL && mConnection == ConnectionType::TLS) {
+    if (tls_con == NULL && mConnection == ConnectionType::TLS) {
 
-    tls_con = (TLS_Connection *)malloc(sizeof(TLS_Connection *));
+        tls_con = (TLS_Connection *)malloc(sizeof(TLS_Connection *));
 
-    tls_init_p(&tls_con, NULL, TLSv1_1_client_method(), mCACert.c_str(),
-               mCert.c_str(), mKey.c_str(), mHost.c_str(), atoi(mPort.c_str()));
+        tls_init_p(
+            &tls_con, NULL, TLSv1_1_client_method(), mCACert.c_str(), mCert.c_str(),
+            mKey.c_str(), mHost.c_str(), atoi(mPort.c_str()));
 
-    while (tls_connect(tls_con) < 0) {
-      sleep(1);
+        while (tls_connect(tls_con) < 0) {
+            sleep(1);
+        }
+
+    } else if (tcp_con == NULL && mConnection == ConnectionType::TCP) {
+
+        tcp_con = (TCP_Connection *)malloc(sizeof(TCP_Connection *));
+        tcp_init_p(&tcp_con, mHost.c_str(), atoi(mPort.c_str()));
+
+        while (tcp_connect(tcp_con) < 0) {
+            sleep(1);
+        }
     }
-
-  } else if (tcp_con == NULL && mConnection == ConnectionType::TCP) {
-
-    tcp_con = (TCP_Connection *)malloc(sizeof(TCP_Connection *));
-    tcp_init_p(&tcp_con, mHost.c_str(), atoi(mPort.c_str()));
-
-    while (tcp_connect(tcp_con) < 0) {
-      sleep(1);
-    }
-  }
 }
 
 void Transmission::run() {
 
-  std::cout << "[*] Transmission block running .... " << std::endl;
+    std::cout << "[*] Transmission block running .... " << std::endl;
 
-  unsigned int prev_data_size = 0, payload_size, packet_size = 0;
-  unsigned int *buf = NULL;
+    unsigned int prev_data_size = 0, payload_size, packet_size = 0;
+    unsigned int *buf = NULL;
 
-  mRunning = true;
-  SpectrumSegment *segment;
+    mRunning = true;
+    SpectrumSegment *segment;
 
-  if (mQueueIn == NULL) {
-    throw std::logic_error("Queue[IN] is NULL!");
-  }
+    if (mQueueIn == NULL) {
+        throw std::logic_error("Queue[IN] is NULL!");
+    }
 
-  unsigned int fft_size = 1 << ElectrosenseContext::getInstance()->getLog2FftSize();
-  unsigned int reduced_fft_size = (1 - ElectrosenseContext::getInstance()->getFreqOverlap()) * (fft_size + 1);
+    unsigned int fft_size = 1 << OpenRFSenseContext::getInstance()->getLog2FftSize();
+    unsigned int reduced_fft_size =
+        (1 - OpenRFSenseContext::getInstance()->getFreqOverlap()) * (fft_size + 1);
 
-  // We need an odd number of bins
-  if (reduced_fft_size % 2 == 0)
-    reduced_fft_size++;
+    // We need an odd number of bins
+    if (reduced_fft_size % 2 == 0)
+        reduced_fft_size++;
 
-  while (mRunning || mQueueIn->size_approx() != 0) {
+    while (mRunning || mQueueIn->size_approx() != 0) {
 
-    if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+        if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
-      // We need to check the connection here since the clock_nanosleep()
-      // function in the rtlsdrDriver interferes with the socket.
-      checkConnection();
+            // We need to check the connection here since the clock_nanosleep()
+            // function in the rtlsdrDriver interferes with the socket.
+            checkConnection();
 
-      char *buffer = segment->getAvroBuffer();
-      unsigned int data_size = segment->getAvroBufferSize();
+            char *buffer = segment->getAvroBuffer();
+            unsigned int data_size = segment->getAvroBufferSize();
 
-      // std::cout << "[*] " <<
-      // ElectrosenseContext::getInstance()->getPipeline() << " " <<
-      //    "Transmission segment " << segment->getTimeStamp().tv_sec << "." <<
-      //    segment->getTimeStamp().tv_nsec << std::endl;
+            // std::cout << "[*] " <<
+            // OpenRFSenseContext::getInstance()->getPipeline() << " " <<
+            //    "Transmission segment " << segment->getTimeStamp().tv_sec <<
+            //    "." << segment->getTimeStamp().tv_nsec << std::endl;
 
-      if (data_size != prev_data_size) {
-        // The payload consists of the compressed data plus some padding,
-        // guaranteeing the packet size to be a multiple of 4
-        payload_size = (data_size + 3) & ~0x03;
-        if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0)
-          packet_size = 2 * sizeof(uint32_t) + payload_size;
-        else {
-          packet_size = 1 * sizeof(uint32_t) + payload_size;
+            if (data_size != prev_data_size) {
+                // The payload consists of the compressed data plus some
+                // padding, guaranteeing the packet size to be a multiple of 4
+                payload_size = (data_size + 3) & ~0x03;
+                if (OpenRFSenseContext::getInstance()->getPipeline().compare("PSD") == 0)
+                    packet_size = 2 * sizeof(uint32_t) + payload_size;
+                else {
+                    packet_size = 1 * sizeof(uint32_t) + payload_size;
+                }
+
+                buf = (uint32_t *)realloc(buf, packet_size);
+                prev_data_size = data_size;
+            }
+
+            memset(buf, 0, packet_size);
+
+            if (OpenRFSenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
+
+                buf[0] = htonl(data_size);
+                buf[1] = htonl(reduced_fft_size);
+                memcpy(buf + 2, buffer, data_size);
+
+            } else { // IQ
+
+                buf[0] = htonl(data_size);
+                memcpy(buf + 1, buffer, data_size);
+            }
+
+            int r;
+            if (mConnection == ConnectionType::TLS)
+                r = tls_write(tls_con, buf, packet_size);
+            else
+                r = tcp_write(tcp_con, buf, packet_size);
+
+            if (r != 0) {
+                std::cerr << "[ERROR] Transmission thread could not write "
+                             "properly in the socket!"
+                          << std::endl;
+                mRunning = false;
+                delete (segment);
+                break;
+            }
+
+            // Free memory of the segment
+            delete (segment);
+
+        } else
+            usleep(1);
+    }
+
+    if (mConnection == ConnectionType::TLS) {
+
+        if (tls_con != NULL) {
+            tls_disconnect(tls_con);
+            tls_release(tls_con);
         }
-
-        buf = (uint32_t *)realloc(buf, packet_size);
-        prev_data_size = data_size;
-      }
-
-      memset(buf, 0, packet_size);
-
-      if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
-
-        buf[0] = htonl(data_size);
-        buf[1] = htonl(reduced_fft_size);
-        memcpy(buf + 2, buffer, data_size);
-
-      } else { // IQ
-
-        buf[0] = htonl(data_size);
-        memcpy(buf + 1, buffer, data_size);
-      }
-
-      int r;
-      if (mConnection == ConnectionType::TLS)
-        r = tls_write(tls_con, buf, packet_size);
-      else
-        r = tcp_write(tcp_con, buf, packet_size);
-
-      if (r!=0) {
-          std::cerr << "[ERROR] Transmission thread could not write properly in the socket!" << std::endl;
-          mRunning = false;
-          delete (segment);
-          break;
-      }
-
-      // Free memory of the segment
-      delete (segment);
-
-    } else
-      usleep(1);
-  }
-
-  if (mConnection == ConnectionType::TLS) {
-
-    if (tls_con!=NULL) {
-        tls_disconnect(tls_con);
-        tls_release(tls_con);
+    } else {
+        if (tcp_con != NULL) {
+            tcp_disconnect(tcp_con);
+            tcp_release(tcp_con);
+        }
     }
-  } else {
-    if (tcp_con!=NULL) {
-        tcp_disconnect(tcp_con);
-        tcp_release(tcp_con);
-    }
-  }
-
 }
 
 int Transmission::stop() {
 
-  mRunning = false;
-  waitForThread();
+    mRunning = false;
+    waitForThread();
 
-  return 1;
+    return 1;
 }
 
 void Transmission::parse_tls_hosts() {
 
-  if (mStrHosts.c_str() != NULL && strcmp(mStrHosts.c_str(), "0") != 0) {
+    if (mStrHosts.c_str() != NULL && strcmp(mStrHosts.c_str(), "0") != 0) {
 
-    std::string delim = "#";
-    std::string delim_2 = ":";
+        std::string delim = "#";
+        std::string delim_2 = ":";
 
-    auto start = 0U;
-    auto end = mStrHosts.find(delim);
-    auto iter = 0;
-    while (end != std::string::npos) {
-      if (iter == 0) {
+        auto start = 0U;
+        auto end = mStrHosts.find(delim);
+        auto iter = 0;
+        while (end != std::string::npos) {
+            if (iter == 0) {
 
-        std::string host = mStrHosts.substr(start, end - start);
-        auto end2 = host.find(delim_2);
+                std::string host = mStrHosts.substr(start, end - start);
+                auto end2 = host.find(delim_2);
 
-        mHost = host.substr(start, end2);
-        mPort = host.substr(end2 + 1, end);
-      } else if (iter == 1) {
-        mCACert = mStrHosts.substr(start, end - start);
-      } else if (iter == 2) {
-        mCert = mStrHosts.substr(start, end - start);
-        mKey = mStrHosts.substr(end + 1, mStrHosts.size() - end);
-      }
+                mHost = host.substr(start, end2);
+                mPort = host.substr(end2 + 1, end);
+            } else if (iter == 1) {
+                mCACert = mStrHosts.substr(start, end - start);
+            } else if (iter == 2) {
+                mCert = mStrHosts.substr(start, end - start);
+                mKey = mStrHosts.substr(end + 1, mStrHosts.size() - end);
+            }
 
-      iter++;
-      start = end + delim.length();
-      end = mStrHosts.find(delim, start);
-    }
+            iter++;
+            start = end + delim.length();
+            end = mStrHosts.find(delim, start);
+        }
 
-    std::cout << "TLS Server information parsed: " << std::endl;
-    std::cout << "   Host:  " << mHost << std::endl;
-    std::cout << "   Port:  " << mPort << std::endl;
-    std::cout << "   CACer: " << mCACert << std::endl;
-    std::cout << "   Cert:  " << mCert << std::endl;
-    std::cout << "   Key:   " << mKey << std::endl;
+        std::cout << "TLS Server information parsed: " << std::endl;
+        std::cout << "   Host:  " << mHost << std::endl;
+        std::cout << "   Port:  " << mPort << std::endl;
+        std::cout << "   CACer: " << mCACert << std::endl;
+        std::cout << "   Cert:  " << mCert << std::endl;
+        std::cout << "   Key:   " << mKey << std::endl;
 
-    if (mCACert.size() == 0) {
-      std::cout << "TCP Connection" << std::endl;
-      mConnection = ConnectionType::TCP;
-    } else {
-      std::cout << "TLS Connection" << std::endl;
-      mConnection = ConnectionType::TLS;
-    }
+        if (mCACert.size() == 0) {
+            std::cout << "TCP Connection" << std::endl;
+            mConnection = ConnectionType::TCP;
+        } else {
+            std::cout << "TLS Connection" << std::endl;
+            mConnection = ConnectionType::TLS;
+        }
 
-  } else
-    throw std::logic_error("Transmission - No information about server\n");
+    } else
+        throw std::logic_error("Transmission - No information about server\n");
 }
-} // namespace electrosense
+} // namespace openrfsense

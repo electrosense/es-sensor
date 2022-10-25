@@ -1,111 +1,172 @@
 {
-  "name"     : "Sample",
-  "namespace": "ch.electrosense.avro.v2",
-  "doc"      : "Spectrum Monitoring Sample (Required)",
-  "type"     : "record",
-  "fields"   : [
+  "name": "PSDSample",
+  "namespace": "org.openrfsense.avro.v3",
+  "doc": "Schema for PSD sample measurements",
+  "type": "record",
+  "fields": [
     {
-      "doc" : "Required Field - Unique sensor identifier.",
-      "name": "SenId",
-      "type": "long"
+      "name": "sensorId",
+      "doc": "Unique sensor identifier.",
+      "type": "string"
     },
     {
-      "doc" : "Required Field - Sensor configuration for the recorded data set.",
-      "name": "SenConf",
-      "type": {"name": "SenConfRec", "type": "record", "fields": [
-        {
-          "doc" : "Identifier of the hopping strategy used to overcome the bandwidth limitations of the RF front-end. [0:Sequential, 1:Random, 2:Similarity]",
-	  "name": "HoppingStrategy",
-	  "type": "int"
-        },
-        {
-	  "doc" : "Identifier of the windowing function used to reshape the time-domain samples. [0:Rectangular, 1:Hanning, 2:BlackmanHarris]",
-	  "name": "WindowingFunction",
-	  "type": "int"
-        },
-        {
-          "doc" : "Size of the fast Fourier transform (FFT), i.e. the number of samples in the frequency-domain representation of a signal. [2^i, where i in {8,...,17}]",
-	  "name": "FFTSize",
-	  "type": "int"
-        },
-        {
-	  "doc" : "Number of frequency-domain signals to average. [>0]",
-	  "name": "AveragingFactor",
-	  "type": "int"
-        },
-        {
-	  "doc" : "Fraction of the frequency-domain signals to drop due to non-linear frequency responses of the RF front-end. The effective number of samples in frequency-domain signals is reduced from FFTSize to (1-FrequencyOverlap)*(FFTSize+1). The bandwidth of the frequency-domain signals is reduced from FFTSize*FrequencyResolution to (1-FrequencyOverlap)*FFTSize*FrequencyResolution. [0,...,1]",
-	  "name": "FrequencyOverlap",
-	  "type": "float"
-        },
-        {
-          "doc" : "Frequency difference in Hz between successive samples within the frequency-domain signals. [>0]",
-          "name": "FrequencyResolution",
-          "type": "float"
-        },
-        {
-	  "doc" : "RF front-end gain in dB. [-1 for automatic gain control]",
-	  "name": "Gain",
-	  "type": "float"
-        }
-      ]}
+      "name": "config",
+      "doc": "Sensor configuration for the recorded data set.",
+      "type": {
+        "name": "config",
+        "namespace": "org.openrfsense.avro.v3",
+        "type": "record",
+        "fields": [
+          {
+            "name": "hoppingStrategy",
+            "doc": "(optional) Hopping strategy  used to overcome the bandwidth limitations of the RF front-end. [0:Sequential, 1:Random, 2:Similarity]",
+            "type": [
+              "null",
+              {
+                "type": "fixed",
+                "size": 1,
+                "name": "HoppingStrategy"
+              }
+            ]
+          },
+          {
+            "name": "antennaGain",
+            "doc": "(optional) antenna gain in dBi",
+            "type": [
+              "null",
+              "float"
+            ]
+          },
+          {
+            "name": "frontendGain",
+            "doc": "(optional) RF front-end gain in dB. [-1 for automatic gain control]",
+            "type": [
+              "null",
+              "float"
+            ]
+          },
+          {
+            "name": "samplingRate",
+            "doc": "(optional) Sensor's sampling rate in samples per second",
+            "type": [
+              "null",
+              "int"
+            ]
+          },
+          {
+            "doc": "Center frequency in Hz to which the RF front-end was tuned to while recording the associated spectrum data.",
+            "name": "centerFreq",
+            "type": "long"
+          },
+          {
+            "name": "frequencyCorrectionFactor",
+            "doc": "(optional) Correction factor for center frequency in Hz. The correction is already applied to the center frequency [0.0 for no correction]",
+            "type": [
+              "null",
+              "float"
+            ]
+          },
+          {
+            "name": "antennaId",
+            "doc": "(optional) Identifier for the antenna being used if device has multiple antennas",
+            "type": [
+              "null",
+              {
+                "type": "fixed",
+                "size": 1,
+                "name": "AntennaId"
+              }
+            ]
+          },
+          {
+            "name": "rfSync",
+            "doc": "(optional) Time synchronization of the radio frontend [0: none, 1: GPS, 2: Reference Clock, 5: Other]",
+            "type": [
+              "null",
+              {
+                "type": "fixed",
+                "size": 1,
+                "name": "RfSync"
+              }
+            ]
+          },
+          {
+            "name": "systemSync",
+            "doc": "(optional) Time synchronization of the system [0: none, 1: GPS, 2: Reference Clock, 3: NTP, 4: OpenSky, 5: Other]",
+            "type": [
+              "null",
+              {
+                "type": "fixed",
+                "size": 1,
+                "name": "SystemSync"
+              }
+            ]
+          },
+          {
+            "name": "sigStrengthCalibration",
+            "doc": "(optional) Signal strength is calibrated",
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          {
+            "name": "iqBalanceCalibration",
+            "doc": "(optional) IQ samples are balanced",
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          {
+            "name": "estNoiseFloor",
+            "doc": "(optional) Estimated noise floor in dB",
+            "type": [
+              "null",
+              "float"
+            ]
+          },
+          {
+            "name": "extraConf",
+            "doc": "(optional) Extra configuration for future use",
+            "type": [
+              "null",
+              {
+                "type": "map",
+                "values": "string"
+              }
+            ]
+          }
+        ]
+      }
     },
     {
-      "doc" : "Optional Field - Position information of the sensor.",
-      "name": "SenPos",
-      "doc" : "Sensor Position (Optional)",
-      "type": ["null", {"name": "SenPosRec", "type": "record", "fields": [
-        {
-          "doc" : "Description/identification of the used positioning system.",
-          "name": "PosSys",
-          "type": "string"
-        },
-        {
-          "doc" : "Position values in the corresponding positioning system.",
-          "name": "PosVal",
-          "type": {"type": "array", "items": "float"}
-        }
-      ]}]
+      "name": "time",
+      "doc": "Required Field - UNIX time stamp in microseconds precision indicating the time at which the associated data was recorded.",
+      "type": {
+        "name": "time",
+        "type": "record",
+        "fields": [
+          {
+            "doc": "Number of seconds since the UNIX epoch start on January 1st, 1970 at UTC.",
+            "name": "seconds",
+            "type": "long"
+          },
+          {
+            "doc": "Required Field - Microseconds extension for the UNIX time stamp.",
+            "name": "microseconds",
+            "type": "int"
+          }
+        ]
+      }
     },
     {
-      "doc" : "Optional Filed - Ambient temperature of the sensor in degrees Celsius.",
-      "name": "SenTemp",
-      "type": ["null", "float"]
-    },
-    {
-      "doc" : "Required Field - UNIX time stamp in microseconds precision indicating the time at which the associated data was recorded.",
-      "name": "SenTime",
-      "doc" : "Time Stamp (Required)",
-      "type": {"name": "SenTimeRec", "type": "record", "fields": [
-        {
-          "doc" : "Number of seconds since the UNIX epoch start on January 1st, 1970 at UTC.",
-          "name": "TimeSecs",
-          "type": "long"
-        },
-        {
-          "doc" : "Microseconds extension for the UNIX time stamp.",
-          "name": "TimeMicrosecs",
-          "doc" : "Microseconds since UNIX Epoch (Required)",
-          "type": "int"
-        }
-      ]}
-    },
-    {
-      "doc" : "Required Field - Spectrum data recorded for a certain center frequency.",
-      "name": "SenData",
-      "type": {"name": "SenDataRec", "type": "record", "fields": [
-        {
-          "doc" : "Center frequency in Hz to which the RF front-end was tuned to while recording the associated spectrum data.",
-          "name": "CenterFreq",
-          "type": "long"
-        },
-        {
-          "doc" : "Actual spectrum data recorded for the associated center frequency. The (1-FrequencyOverlap)*(FFTSize+1) data points represent the squared magnitudes of the frequency-domain signal on a dB scale.",
-          "name": "SquaredMag",
-          "type": {"type": "array", "items": "float"}
-        }
-      ]}
+      "name": "data",
+      "doc": "Actual spectrum data recorded for the associated center frequency. The (1-FrequencyOverlap)*(FFTSize+1) data points represent the squared magnitudes of the frequency-domain signal on a dB scale.",
+      "type": {
+        "type": "array",
+        "items": "float"
+      }
     }
   ]
 }
-

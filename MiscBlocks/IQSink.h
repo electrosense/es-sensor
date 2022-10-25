@@ -19,62 +19,61 @@
  * 	Authors: 	Roberto Calvo-Palomino <roberto.calvo@imdea.org>
  *
  */
-#ifndef ELECTROSENSE_SENSOR_IQSINK_H
-#define ELECTROSENSE_SENSOR_IQSINK_H
+#ifndef OPENRFSENSE_SENSOR_IQSINK_H
+#define OPENRFSENSE_SENSOR_IQSINK_H
 
-#include <algorithm>
-#include <complex.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <unistd.h>
-#include <vector>
-#include <string.h>
-#include <functional>
-
-#include "../context/ElectrosenseContext.h"
+#include "../context/OpenRFSenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
-namespace electrosense {
+#include <algorithm>
+#include <complex.h>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <string.h>
+#include <unistd.h>
+#include <vector>
 
-class IQSink : public Component,
-               public Communication<SpectrumSegment *, SpectrumSegment *> {
+namespace openrfsense {
 
-public:
-  IQSink();
+class IQSink :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-  IQSink(std::string filename);
+  public:
+    IQSink();
 
-  ~IQSink(){};
+    IQSink(std::string filename);
 
-  std::string getNameId() { return std::string("IQSink"); };
+    ~IQSink(){};
 
-  int stop();
+    std::string getNameId() { return std::string("IQSink"); };
 
-  void setFileName(std::string filename) { mFileName = filename; };
+    int stop();
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    void setFileName(std::string filename) { mFileName = filename; };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-private:
-  void run();
-  float remove_DC (float a );
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
+  private:
+    void run();
+    float remove_DC(float a);
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  std::string mFileName;
-  std::ofstream mOutputFile;
-
+    std::string mFileName;
+    std::ofstream mOutputFile;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ELECTROSENSE_SENSOR_IQSINK_H
+#endif // OPENRFSENSE_SENSOR_IQSINK_H

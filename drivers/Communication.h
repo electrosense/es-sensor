@@ -21,28 +21,28 @@
  *
  */
 
-#ifndef ES_SENSOR_COMMUNCATION_H
-#define ES_SENSOR_COMMUNCATION_H
-
-#include <thread>
+#ifndef ORFS_SENSOR_COMMUNCATION_H
+#define ORFS_SENSOR_COMMUNCATION_H
 
 #include "../misc/readerwriterqueue.h"
+
+#include <thread>
 
 using namespace moodycamel;
 
 template <typename Tin, typename Tout> class Communication {
 
-public:
-  typedef const Tin ParamIn;
-  typedef const Tout ParamOut;
+  public:
+    typedef const Tin ParamIn;
+    typedef const Tout ParamOut;
 
-  // Getters for the queue
-  virtual ReaderWriterQueue<Tin> *getQueueIn() = 0;
-  virtual ReaderWriterQueue<Tout> *getQueueOut() = 0;
+    // Getters for the queue
+    virtual ReaderWriterQueue<Tin> *getQueueIn() = 0;
+    virtual ReaderWriterQueue<Tout> *getQueueOut() = 0;
 
-  // Setters for the queue
-  virtual void setQueueIn(ReaderWriterQueue<Tin> *QueueIn) = 0;
-  virtual void setQueueOut(ReaderWriterQueue<Tout> *QueueOut) = 0;
+    // Setters for the queue
+    virtual void setQueueIn(ReaderWriterQueue<Tin> *QueueIn) = 0;
+    virtual void setQueueOut(ReaderWriterQueue<Tout> *QueueOut) = 0;
 };
 
 #endif

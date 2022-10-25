@@ -1,4 +1,4 @@
 #!/bin/bash
 
-chmod +x /usr/share/electrosense/bin/es_sensor
-ln -fs /usr/share/electrosense/bin/es_sensor /usr/bin/es_sensor
+chmod +x /usr/share/openrfsense/bin/orfs_sensor
+ln -fs /usr/share/openrfsense/bin/orfs_sensor /usr/bin/orfs_sensor

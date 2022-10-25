@@ -24,7 +24,7 @@
 #include "rtlsdrDriver.h"
 #include <pthread.h>
 
-namespace electrosense {
+namespace openrfsense {
 
 rtlsdrDriver::rtlsdrDriver() {
 
@@ -71,15 +71,15 @@ int rtlsdrDriver::open(std::string device) {
   }
 
 
-  if (rtlsdr_set_direct_sampling(mDevice, ElectrosenseContext::getInstance()->getDirectSamplingMode()) < 0) {
+  if (rtlsdr_set_direct_sampling(mDevice, OpenRFSenseContext::getInstance()->getDirectSamplingMode()) < 0) {
       std::cerr << "Error: unable to rtlsdr_set_direct_sampling" << std::endl;
       throw std::logic_error("Fatal Error, rtlsdr_set_direct_sampling");
   } else {
-      std::cout << "direct sampling mode set properly, " << ElectrosenseContext::getInstance()->getDirectSamplingMode() << std::endl;
+      std::cout << "direct sampling mode set properly, " << OpenRFSenseContext::getInstance()->getDirectSamplingMode() << std::endl;
   }
 
 
-  int samplingRate = ElectrosenseContext::getInstance()->getSamplingRate();
+  int samplingRate = OpenRFSenseContext::getInstance()->getSamplingRate();
 
   // Sampling frequency
   if (rtlsdr_set_sample_rate(mDevice, samplingRate) < 0) {
@@ -108,7 +108,7 @@ int rtlsdrDriver::open(std::string device) {
     free(gains);
   }
 
-  int gain = ElectrosenseContext::getInstance()->getGain();
+  int gain = OpenRFSenseContext::getInstance()->getGain();
 
   int r = rtlsdr_set_tuner_gain_mode(mDevice, 1);
   if (r < 0) {
@@ -153,8 +153,8 @@ int rtlsdrDriver::open(std::string device) {
     mConverterEnabled = true;
   }
 
-  if (! mConverterEnabled && ElectrosenseContext::getInstance()->getMinFreq() < 24e6) {
-      ElectrosenseContext::getInstance()->setDirectSamplingMode(2);
+  if (! mConverterEnabled && OpenRFSenseContext::getInstance()->getMinFreq() < 24e6) {
+      OpenRFSenseContext::getInstance()->setDirectSamplingMode(2);
       std::cout << "[INFO] Direct Sampling (mode=2) has been enabled" << std::endl;
   }
 
@@ -202,7 +202,7 @@ typedef struct {
 
   bool converter_enable;
 
-  ElectrosenseContext *context;
+  OpenRFSenseContext *context;
 
   converter *conv;
 
@@ -229,7 +229,7 @@ static void capbuf_rtlsdr_callback(unsigned char *buf, uint32_t len,
   ReaderWriterQueue<SpectrumSegment *> *queue2 = cp.queue2;
 
   rtlsdr_dev_t *dev = cp.dev;
-  ElectrosenseContext *esense = cp_p->context;
+  OpenRFSenseContext *esense = cp_p->context;
 
   // we set init time to current time only in the first execution
   if (cp.init_time.tv_sec == 0)
@@ -247,13 +247,13 @@ static void capbuf_rtlsdr_callback(unsigned char *buf, uint32_t len,
 
       SpectrumSegment *segment = new SpectrumSegment(
               -1000, current_time, center_freq,
-              ElectrosenseContext::getInstance()->getSamplingRate(), buf, len);
+              OpenRFSenseContext::getInstance()->getSamplingRate(), buf, len);
 
       queue->enqueue(segment);
 
       SpectrumSegment *segment2 = new SpectrumSegment(
               -1000, current_time, center_freq,
-              ElectrosenseContext::getInstance()->getSamplingRate(), buf, len);
+              OpenRFSenseContext::getInstance()->getSamplingRate(), buf, len);
       queue2->enqueue(segment2);
 
   }
@@ -261,7 +261,7 @@ static void capbuf_rtlsdr_callback(unsigned char *buf, uint32_t len,
 
       SpectrumSegment *segment = new SpectrumSegment(
               -1000, current_time, center_freq,
-              ElectrosenseContext::getInstance()->getSamplingRate(), buf, len);
+              OpenRFSenseContext::getInstance()->getSamplingRate(), buf, len);
 
       queue->enqueue(segment);
 
@@ -275,7 +275,7 @@ static void capbuf_rtlsdr_callback(unsigned char *buf, uint32_t len,
 
     SpectrumSegment *segment = new SpectrumSegment(
         -1000, current_time, center_freq,
-        ElectrosenseContext::getInstance()->getSamplingRate(), capbuf_raw_p);
+        OpenRFSenseContext::getInstance()->getSamplingRate(), capbuf_raw_p);
 
     queue->enqueue(segment);
   }
@@ -298,13 +298,13 @@ static void *aux_thread(void *arg) {
 
   struct timespec ref_time;
 
-  ref_time.tv_sec = ElectrosenseContext::getInstance()->getStartTimeSampling();
+  ref_time.tv_sec = OpenRFSenseContext::getInstance()->getStartTimeSampling();
   ref_time.tv_nsec = 0;
 
   callback_package_t *cp_p = (callback_package_t *)arg;
   callback_package_t &cp = *cp_p;
 
-  if (ElectrosenseContext::getInstance()->getStartTimeSampling() != 0) {
+  if (OpenRFSenseContext::getInstance()->getStartTimeSampling() != 0) {
 
     struct timespec time_diff;
 
@@ -349,7 +349,7 @@ static void *socket_webrtc_thread(void *arg) {
   rtlsdr_dev_t *dev = cp.dev;
   converter *conv = cp.conv;
 
-  ElectrosenseContext *esense = cp_p->context;
+  OpenRFSenseContext *esense = cp_p->context;
 
   uint64_t last_fc = esense->getMinFreq();
   uint64_t proxy_freq = 0, previous_proxy_freq = 0;
@@ -440,7 +440,7 @@ void rtlsdrDriver::run() {
 
   mRunning = true;
 
-  if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
+  if (OpenRFSenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
     std::cout << "rtlsdrDriver: SyncSampling ..... " << std::endl;
     SyncSampling();
 
@@ -453,10 +453,10 @@ void rtlsdrDriver::run() {
 
     callback_package_t cp;
     cp.buf = &m_capbuf_raw;
-    cp.center_frequency = ElectrosenseContext::getInstance()->getMinFreq();
+    cp.center_frequency = OpenRFSenseContext::getInstance()->getMinFreq();
     cp.queue = mQueueOut;
     cp.queue2 = mQueueOut2;
-    cp.duration = ElectrosenseContext::getInstance()->getMonitorTime();
+    cp.duration = OpenRFSenseContext::getInstance()->getMonitorTime();
     cp.dev = mDevice;
     cp.converter_enable = mConverterEnabled;
     cp.conv = &mConverterDriver;
@@ -480,9 +480,9 @@ void rtlsdrDriver::run() {
       mRunning = false;
     }
 
-    cp.context = ElectrosenseContext::getInstance();
+    cp.context = OpenRFSenseContext::getInstance();
 
-    if (ElectrosenseContext::getInstance()->getPipeline().compare("DEC") == 0) {
+    if (OpenRFSenseContext::getInstance()->getPipeline().compare("DEC") == 0) {
 
       printf("[rtlsdrDriver] Creating communication socket for WebRTC\n");
 
@@ -563,7 +563,7 @@ void rtlsdrDriver::SyncSampling() {
       } else {
 
           // Direct sampling
-          if (ElectrosenseContext::getInstance()->getDirectSamplingMode() > 0) {
+          if (OpenRFSenseContext::getInstance()->getDirectSamplingMode() > 0) {
               if (center_freq >= 24e6 && direct_sampling) {
 
                   if (rtlsdr_set_direct_sampling(mDevice, 0) < 0) {
@@ -571,7 +571,7 @@ void rtlsdrDriver::SyncSampling() {
                       throw std::logic_error("Fatal Error, unable to disable direct_sampling");
                   }
 
-                  int gain = ElectrosenseContext::getInstance()->getGain();
+                  int gain = OpenRFSenseContext::getInstance()->getGain();
                   rtlsdr_set_agc_mode(mDevice, 0);
                   int r = rtlsdr_set_tuner_gain_mode(mDevice, 1);
                   if (r < 0) {
@@ -618,16 +618,16 @@ void rtlsdrDriver::SyncSampling() {
     }
 
     unsigned int current_fft_size =
-        1 << ElectrosenseContext::getInstance()->getLog2FftSize();
+        1 << OpenRFSenseContext::getInstance()->getLog2FftSize();
 
     if (fft_size != current_fft_size) {
 
       fft_size = current_fft_size;
 
       slen = ((current_fft_size -
-               ElectrosenseContext::getInstance()->getSoverlap()) *
-                  ElectrosenseContext::getInstance()->getAvgFactor() +
-              ElectrosenseContext::getInstance()->getSoverlap()) * 2;
+               OpenRFSenseContext::getInstance()->getSoverlap()) *
+                  OpenRFSenseContext::getInstance()->getAvgFactor() +
+              OpenRFSenseContext::getInstance()->getSoverlap()) * 2;
 
       // NOTE: libusb_bulk_transfer for RTL-SDR seems to crash when not reading
       // multiples of 512 (BULK_TRANSFER_MULTIPLE)
@@ -656,7 +656,7 @@ void rtlsdrDriver::SyncSampling() {
     std::vector<std::complex<float>> iq_vector;
 
     for (unsigned int i = 0;
-         i < ElectrosenseContext::getInstance()->getAvgFactor(); i++) {
+         i < OpenRFSenseContext::getInstance()->getAvgFactor(); i++) {
 
       iq_vector.clear();
 
@@ -666,16 +666,16 @@ void rtlsdrDriver::SyncSampling() {
 
         iq_vector.push_back(std::complex<float>(
             iq_buf[j + i * (current_fft_size -
-                            ElectrosenseContext::getInstance()->getSoverlap()) * 2],
+                            OpenRFSenseContext::getInstance()->getSoverlap()) * 2],
             iq_buf[j + 1 + i * (current_fft_size -
-                        ElectrosenseContext::getInstance()->getSoverlap()) * 2]));
+                        OpenRFSenseContext::getInstance()->getSoverlap()) * 2]));
       }
 
       // TODO: Id should be the ethernet MAC
 
       SpectrumSegment *segment = new SpectrumSegment(
           -1000, current_time, center_freq,
-          ElectrosenseContext::getInstance()->getSamplingRate(), iq_vector);
+          OpenRFSenseContext::getInstance()->getSamplingRate(), iq_vector);
       mQueueOut->enqueue(segment);
     }
   }
@@ -686,7 +686,7 @@ void rtlsdrDriver::SyncSampling() {
 int rtlsdrDriver::stop() {
   mRunning = false;
 
-  if (ElectrosenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
+  if (OpenRFSenseContext::getInstance()->getPipeline().compare("PSD") == 0) {
     waitForThread();
     rtlsdr_close(mDevice);
     mDevice = NULL;
@@ -700,4 +700,4 @@ int rtlsdrDriver::stop() {
   return 1;
 }
 
-} // namespace electrosense
+} // namespace openrfsense

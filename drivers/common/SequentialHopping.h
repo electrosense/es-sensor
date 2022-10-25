@@ -24,7 +24,7 @@
 #ifndef SRC_SEQUENTIALHOPPING_H_
 #define SRC_SEQUENTIALHOPPING_H_
 
-#include "../../context/ElectrosenseContext.h"
+#include "../../context/OpenRFSenseContext.h"
 #include <vector>
 
 class SequentialHopping {

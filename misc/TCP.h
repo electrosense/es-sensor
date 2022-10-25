@@ -26,15 +26,13 @@
 
 #include <netinet/in.h>
 
-
-
-#define pack754_32(f) (pack754((f), 32, 8))
-#define pack754_64(f) (pack754((f), 64, 11))
+#define pack754_32(f)   (pack754((f), 32, 8))
+#define pack754_64(f)   (pack754((f), 64, 11))
 #define unpack754_32(i) (unpack754((i), 32, 8))
 #define unpack754_64(i) (unpack754((i), 64, 11))
 
-#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
-#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
 
 typedef struct {
     int socket_fd;
@@ -61,7 +59,8 @@ long double unpack754(uint64_t i, unsigned bits, unsigned expbits);
  * \param c
  * \param hostaddr
  * \param portnum
- * \param bandwidth Bandwidth limitation in Kb/s, unlimited bandwidth for non-positive values
+ * \param bandwidth Bandwidth limitation in Kb/s, unlimited bandwidth for
+ * non-positive values
  *
  * \return
  */

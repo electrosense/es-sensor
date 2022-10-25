@@ -20,53 +20,53 @@
  *
  */
 
-#ifndef ES_SENSOR_AVERAGING_H
-#define ES_SENSOR_AVERAGING_H
+#ifndef ORFS_SENSOR_AVERAGING_H
+#define ORFS_SENSOR_AVERAGING_H
 
-#include <functional>
-#include <algorithm>
-#include <complex.h>
-#include <liquid/liquid.h>
-#include <unistd.h>
-#include <vector>
-
-#include "../context/ElectrosenseContext.h"
+#include "../context/OpenRFSenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
-namespace electrosense {
+#include <algorithm>
+#include <complex.h>
+#include <functional>
+#include <liquid/liquid.h>
+#include <unistd.h>
+#include <vector>
 
-class Averaging : public Component,
-                  public Communication<SpectrumSegment *, SpectrumSegment *> {
+namespace openrfsense {
 
-public:
-  Averaging();
+class Averaging :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-  ~Averaging(){};
+  public:
+    Averaging();
 
-  std::string getNameId() { return std::string("Averaging"); };
+    ~Averaging(){};
 
-  int stop();
+    std::string getNameId() { return std::string("Averaging"); };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    int stop();
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-private:
-  void run();
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
+  private:
+    void run();
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  std::vector<SpectrumSegment *> avgVector;
+    std::vector<SpectrumSegment *> avgVector;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_AVERAGING_H
+#endif // ORFS_SENSOR_AVERAGING_H

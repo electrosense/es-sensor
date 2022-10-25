@@ -21,8 +21,8 @@
  * 	            Roberto
  *
  */
-#ifndef ELECTROSENSE_SENSOR_IQSTREAM_H
-#define ELECTROSENSE_SENSOR_IQSTREAM_H
+#ifndef OPENRFSENSE_SENSOR_IQSTREAM_H
+#define OPENRFSENSE_SENSOR_IQSTREAM_H
 
 #include <algorithm>
 #include <complex.h>
@@ -35,99 +35,98 @@
 
 //#include "mysocket.h"
 
+#include "../context/OpenRFSenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
+#include "Filter/CIC/CIC.h"
+#include "Filter/FIR/FIRDesign.h"
+#include "Filter/FIR/RationalFIRFilter.h"
+#include "Filter/Resampler/Downsampler.h"
+
 #include <endian.h>
 #include <errno.h>
 #include <error.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+namespace openrfsense {
 
-#include "../context/ElectrosenseContext.h"
-#include "../drivers/Communication.h"
-#include "../drivers/Component.h"
-#include "../types/SpectrumSegment.h"
+class IQStream :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-#include "Filter/CIC/CIC.h"
-#include "Filter/FIR/FIRDesign.h"
-#include "Filter/FIR/RationalFIRFilter.h"
-#include "Filter/Resampler/Downsampler.h"
+  public:
+    IQStream();
 
-namespace electrosense {
+    ~IQStream(){};
 
-class IQStream : public Component,
-                 public Communication<SpectrumSegment *, SpectrumSegment *> {
+    std::string getNameId() { return std::string("IQStream"); };
 
-public:
-  IQStream();
+    int stop();
 
-  ~IQStream(){};
+    void setFileName(std::string filename) { mFileName = filename; };
 
-  std::string getNameId() { return std::string("IQStream"); };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-  int stop();
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-  void setFileName(std::string filename) { mFileName = filename; };
+    bool getDecoderState() {
+        mMutex.lock();
+        bool state = mDecoderState;
+        mMutex.unlock();
+        return state;
+    };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+  private:
+    void initSocket();
+    ssize_t sendIQSamples(
+        int fd, uint64_t centerFrequency, uint32_t gain, uint32_t nSamples,
+        const int8_t *iq);
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+    void run();
 
-  bool getDecoderState() {
-    mMutex.lock();
-    bool state = mDecoderState;
-    mMutex.unlock();
-    return state;
-  };
+    void setDecoderState(bool state) {
+        mMutex.lock();
+        mDecoderState = state;
+        mMutex.unlock();
+    };
 
-private:
-  void initSocket();
-  ssize_t sendIQSamples(int fd, uint64_t centerFrequency, uint32_t gain,
-                        uint32_t nSamples, const int8_t *iq);
+    std::mutex mMutex;
+    bool mDecoderState;
 
-  void run();
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  void setDecoderState(bool state) {
-    mMutex.lock();
-    mDecoderState = state;
-    mMutex.unlock();
-  };
+    std::string mFileName;
 
-  std::mutex mMutex;
-  bool mDecoderState;
+    struct Header {
+        uint64_t centerFrequency;
+        uint32_t gain;
+        uint32_t nSamples;
+    } __attribute__((packed));
 
+    int m_cfd;
+    int m_fd;
+    bool mSocketEnable;
+    struct sockaddr_un addr;
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
-
-  std::string mFileName;
-
-  struct Header {
-    uint64_t centerFrequency;
-    uint32_t gain;
-    uint32_t nSamples;
-  } __attribute__((packed));
-
-  int m_cfd;
-  int m_fd;
-  bool mSocketEnable;
-  struct sockaddr_un addr;
-
-  int mChildPID;
+    int mChildPID;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ELECTROSENSE_SENSOR_IQSINK_H
+#endif // OPENRFSENSE_SENSOR_IQSINK_H

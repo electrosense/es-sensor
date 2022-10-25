@@ -20,54 +20,54 @@
  *
  */
 
-#ifndef ES_SENSOR_REMOVEDCRTL_H
-#define ES_SENSOR_REMOVEDCRTL_H
+#ifndef ORFS_SENSOR_REMOVEDCRTL_H
+#define ORFS_SENSOR_REMOVEDCRTL_H
 
-#include <algorithm>
-#include <complex.h>
-#include <unistd.h>
-#include <vector>
-#include <string.h>
-#include <functional>
-
-#include "../context/ElectrosenseContext.h"
+#include "../context/OpenRFSenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
-namespace electrosense {
+#include <algorithm>
+#include <complex.h>
+#include <functional>
+#include <string.h>
+#include <unistd.h>
+#include <vector>
 
-    class RemoveDCRTL : public Component,
-                     public Communication<SpectrumSegment *, SpectrumSegment *> {
+namespace openrfsense {
 
-    public:
-        RemoveDCRTL();
+class RemoveDCRTL :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-        ~RemoveDCRTL(){};
+  public:
+    RemoveDCRTL();
 
-        std::string getNameId() { return std::string("RemoveDC-RTL"); };
+    ~RemoveDCRTL(){};
 
-        int stop();
+    std::string getNameId() { return std::string("RemoveDC-RTL"); };
 
-        ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-        void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-            mQueueIn = QueueIn;
-        };
+    int stop();
 
-        ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-        void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
-
-    private:
-        void run();
-        float remove_DC (float a);
-
-        ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-        ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
-
-        const int MAX_SEGMENT = 2400000;
-
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
     };
 
-} // namespace electrosense
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-#endif // ES_SENSOR_REMOVEDCRTL_H
+  private:
+    void run();
+    float remove_DC(float a);
+
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+
+    const int MAX_SEGMENT = 2400000;
+};
+
+} // namespace openrfsense
+
+#endif // ORFS_SENSOR_REMOVEDCRTL_H

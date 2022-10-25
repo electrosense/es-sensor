@@ -22,62 +22,60 @@
  *
  */
 
-#ifndef ELECTROSENSE_SENSOR_PSDFAST_H
-#define ELECTROSENSE_SENSOR_PSDFAST_H
+#ifndef OPENRFSENSE_SENSOR_PSDFAST_H
+#define OPENRFSENSE_SENSOR_PSDFAST_H
 
-#include <algorithm>
-#include <complex.h>
-#include <error.h>
-#include <liquid/liquid.h>
-#include <unistd.h>
-#include <vector>
-#include <cmath>
-
-#include "../context/ElectrosenseContext.h"
+#include "../context/OpenRFSenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../types/SpectrumSegment.h"
 
-#include <json-c/json.h>
-
+#include <algorithm>
 #include <arpa/inet.h>
+#include <cmath>
+#include <complex.h>
+#include <error.h>
+#include <json-c/json.h>
+#include <liquid/liquid.h>
 #include <sys/socket.h>
+#include <unistd.h>
+#include <vector>
 
-namespace electrosense {
+namespace openrfsense {
 
-class PSDFast : public Component,
-                public Communication<SpectrumSegment *, SpectrumSegment *> {
+class PSDFast :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-public:
-  PSDFast();
+  public:
+    PSDFast();
 
-  ~PSDFast(){};
+    ~PSDFast(){};
 
-  std::string getNameId() { return std::string("PSDFast"); };
+    std::string getNameId() { return std::string("PSDFast"); };
 
-  int stop();
+    int stop();
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-private:
-  void run();
+  private:
+    void run();
 
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+    struct sockaddr_in si_other;
+    int mSocket;
 
-  struct sockaddr_in si_other;
-  int mSocket;
-
-  int slen = sizeof(si_other);
+    int slen = sizeof(si_other);
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_AVERAGING_H
+#endif // ORFS_SENSOR_AVERAGING_H

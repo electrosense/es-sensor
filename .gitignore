@@ -1,2 +1,5 @@
 # CMake build directory
 build/
+
+# Generated headers
+generated/

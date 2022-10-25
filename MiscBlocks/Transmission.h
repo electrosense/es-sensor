@@ -20,17 +20,17 @@
  *
  */
 
-#ifndef ES_SENSOR_TRANSMISSION_H
-#define ES_SENSOR_TRANSMISSION_H
+#ifndef ORFS_SENSOR_TRANSMISSION_H
+#define ORFS_SENSOR_TRANSMISSION_H
 
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 #include <vector>
-#include <signal.h>
 
 // Workaround issue #4 , complex.h breaks openssl's RSA library
 //   include RSA before any mention to complex.h (in SpectrumSegment.h)
-#include "../context/ElectrosenseContext.h"
+#include "../context/OpenRFSenseContext.h"
 #include "../drivers/Communication.h"
 #include "../drivers/Component.h"
 #include "../misc/TLS.h"
@@ -38,56 +38,54 @@
 
 #include <netinet/in.h>
 
-namespace electrosense {
+namespace openrfsense {
 
-class Transmission
-    : public Component,
-      public Communication<SpectrumSegment *, SpectrumSegment *> {
+class Transmission :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-public:
+  public:
+    Transmission();
 
+    ~Transmission(){};
 
-  Transmission();
+    std::string getNameId() { return std::string("Transmission"); };
 
-  ~Transmission(){};
+    int stop();
 
-  std::string getNameId() { return std::string("Transmission"); };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-  int stop();
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    enum ConnectionType { TCP = 0, TLS };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return NULL; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+  private:
+    void run();
+    void parse_tls_hosts();
+    void checkConnection();
 
-  enum ConnectionType { TCP = 0, TLS };
+    static void signal_callback_handler(int signum);
 
-private:
-  void run();
-  void parse_tls_hosts();
-  void checkConnection();
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 
-  static void signal_callback_handler(int signum);
+    std::string mStrHosts;
 
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+    std::string mHost;
+    std::string mPort;
+    std::string mCACert;
+    std::string mCert;
+    std::string mKey;
 
-  std::string mStrHosts;
+    ConnectionType mConnection;
 
-  std::string mHost;
-  std::string mPort;
-  std::string mCACert;
-  std::string mCert;
-  std::string mKey;
-
-  ConnectionType mConnection;
-
-  TLS_Connection *tls_con;
-  TCP_Connection *tcp_con;
+    TLS_Connection *tls_con;
+    TCP_Connection *tcp_con;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_TRANSMISSION_H
+#endif // ORFS_SENSOR_TRANSMISSION_H

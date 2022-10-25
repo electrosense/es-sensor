@@ -3,20 +3,16 @@
 
 #include <string>
 
-// define your version_libinterface
-#define ELECTROSENSE_VERSION "@VERSION@"
+#define OPENRFSENSE_VERSION "@VERSION@"
 
-// alternatively you could add your global method getElectrosenseVersion here
+namespace openrfsense {
+namespace version {
 
-std::string getElectrosenseVersion()
-{
-    return "@VERSION@-@DEBVERSION@";
-}
+std::string version() { return "@VERSION@-@DEBVERSION@"; }
 
-std::string getElectrosenseTimeCompilation()
-{
-    return "@TIME_COMPILATION@";
-}
+std::string compilationTime() { return "@TIME_COMPILATION@"; }
 
+} // namespace version
+} // namespace openrfsense
 
 #endif // VERSION_CONFIG_H

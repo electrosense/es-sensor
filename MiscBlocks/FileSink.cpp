@@ -22,55 +22,51 @@
 
 #include "FileSink.h"
 
-namespace electrosense {
+namespace openrfsense {
 
 FileSink::FileSink(std::string filename) {
-
-  mFileName = filename;
-  mOutputFile.open(filename);
+    mFileName = filename;
+    mOutputFile.open(filename);
 }
 
 void FileSink::run() {
+    std::cout << "[*] FileSink block running .... " << std::endl;
 
-  std::cout << "[*] FileSink block running .... " << std::endl;
+    mRunning = true;
+    SpectrumSegment *segment;
 
-  mRunning = true;
-  SpectrumSegment *segment;
+    if (mQueueIn == NULL) {
+        throw std::logic_error("Queue[IN] is NULL!");
+    }
 
-  if (mQueueIn == NULL) {
-    throw std::logic_error("Queue[IN] is NULL!");
-  }
+    while (mRunning) {
+        if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
-  while (mRunning) {
+            mOutputFile << segment->getTimeStamp().tv_sec << "."
+                        << segment->getTimeStamp().tv_nsec << ",";
+            mOutputFile << segment->getCenterFrequency() << ",";
+            std::vector<float> psdsamples = segment->getPSDValues();
 
-    if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+            for (unsigned int i = 0; i < psdsamples.size(); i++)
+                mOutputFile << std::setprecision(5) << psdsamples.at(i) << ",";
 
-      mOutputFile << segment->getTimeStamp().tv_sec << "."
-                  << segment->getTimeStamp().tv_nsec << ",";
-      mOutputFile << segment->getCenterFrequency() << ",";
-      std::vector<float> psdsamples = segment->getPSDValues();
+            mOutputFile << std::endl;
 
-      for (unsigned int i = 0; i < psdsamples.size(); i++)
-        mOutputFile << std::setprecision(5) << psdsamples.at(i) << ",";
+            mOutputFile.flush();
 
-      mOutputFile << std::endl;
+            delete (segment);
 
-      mOutputFile.flush();
+        } else
+            usleep(1);
+    }
 
-      delete (segment);
-
-    } else
-      usleep(1);
-  }
-
-  mOutputFile.close();
+    mOutputFile.close();
 }
 
 int FileSink::stop() {
+    mRunning = false;
+    waitForThread();
 
-  mRunning = false;
-  waitForThread();
-
-  return 1;
+    return 1;
 }
-} // namespace electrosense
+} // namespace openrfsense

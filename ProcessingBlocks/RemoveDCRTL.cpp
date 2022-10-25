@@ -22,61 +22,59 @@
 
 #include "RemoveDCRTL.h"
 
-namespace electrosense {
+namespace openrfsense {
 
-    RemoveDCRTL::RemoveDCRTL() {
-        mQueueOut = new ReaderWriterQueue<SpectrumSegment *>(100);
+RemoveDCRTL::RemoveDCRTL() { mQueueOut = new ReaderWriterQueue<SpectrumSegment *>(100); }
+
+float RemoveDCRTL::remove_DC(float a) { return (a - 127.4) / 128.0; }
+void RemoveDCRTL::run() {
+
+    std::cout << "[*] RemoveDCRLT block running .... " << std::endl;
+
+    mRunning = true;
+    SpectrumSegment *segment;
+
+    if (mQueueIn == NULL || mQueueOut == NULL) {
+        throw std::logic_error("Queue[IN|OUT] are NULL!");
     }
 
+    float *floatArray = (float *)malloc(sizeof(float) * MAX_SEGMENT);
 
-    float RemoveDCRTL::remove_DC (float a) {
-        return (a-127.4)/128.0;
-    }
-    void RemoveDCRTL::run() {
+    while (mRunning || mQueueIn->size_approx() != 0) {
 
-        std::cout << "[*] RemoveDCRLT block running .... " << std::endl;
+        if (mQueueIn && mQueueIn->try_dequeue(segment)) {
 
-        mRunning = true;
-        SpectrumSegment *segment;
+            unsigned char *buf = segment->get_buffer();
+            int buf_len = segment->get_buffer_len();
 
-        if (mQueueIn == NULL || mQueueOut == NULL) {
-            throw std::logic_error("Queue[IN|OUT] are NULL!");
-        }
+            std::copy(buf, buf + buf_len, floatArray);
+            std::vector<float> v_float(floatArray, floatArray + sizeof(float) * buf_len);
+            v_float.resize(buf_len);
 
-        float* floatArray = (float*) malloc(sizeof(float)*MAX_SEGMENT);
+            // Remove DC and normalize between -1 and 1
+            std::transform(
+                v_float.begin(), v_float.end(), v_float.begin(),
+                std::bind(&RemoveDCRTL::remove_DC, this, std::placeholders::_1));
 
-        while (mRunning || mQueueIn->size_approx() != 0 ) {
+            // std::copy(v_float.begin(), v_float.end(),
+            // segment->getIQ_time_v2().begin());
+            segment->getIQ_time_v2().assign(v_float.begin(), v_float.end());
 
-            if (mQueueIn && mQueueIn->try_dequeue(segment)) {
+            mQueueOut->enqueue(segment);
 
-                unsigned char *buf = segment->get_buffer();
-                int buf_len = segment->get_buffer_len();
-
-                std::copy(buf, buf + buf_len, floatArray);
-                std::vector<float> v_float (floatArray, floatArray + sizeof(float)*buf_len);
-                v_float.resize(buf_len);
-
-                // Remove DC and normalize between -1 and 1
-                std::transform(v_float.begin(), v_float.end(), v_float.begin(), std::bind(&RemoveDCRTL::remove_DC, this, std::placeholders::_1));
-
-                //std::copy(v_float.begin(), v_float.end(), segment->getIQ_time_v2().begin());
-                segment->getIQ_time_v2().assign(v_float.begin(), v_float.end());
-
-                mQueueOut->enqueue(segment);
-
-            } else
-                usleep(1);
-        }
-
-        free(floatArray);
+        } else
+            usleep(1);
     }
 
-    int RemoveDCRTL::stop() {
+    free(floatArray);
+}
 
-        mRunning = false;
-        waitForThread();
+int RemoveDCRTL::stop() {
 
-        return 1;
-    }
+    mRunning = false;
+    waitForThread();
 
-} // namespace electrosense
+    return 1;
+}
+
+} // namespace openrfsense

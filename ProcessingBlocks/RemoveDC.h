@@ -20,49 +20,49 @@
  *
  */
 
-#ifndef ES_SENSOR_REMOVEDC_H
-#define ES_SENSOR_REMOVEDC_H
+#ifndef ORFS_SENSOR_REMOVEDC_H
+#define ORFS_SENSOR_REMOVEDC_H
+
+#include "../context/OpenRFSenseContext.h"
+#include "../drivers/Communication.h"
+#include "../drivers/Component.h"
+#include "../types/SpectrumSegment.h"
 
 #include <algorithm>
 #include <complex.h>
 #include <unistd.h>
 #include <vector>
 
-#include "../context/ElectrosenseContext.h"
-#include "../drivers/Communication.h"
-#include "../drivers/Component.h"
-#include "../types/SpectrumSegment.h"
+namespace openrfsense {
 
-namespace electrosense {
+class RemoveDC :
+    public Component,
+    public Communication<SpectrumSegment *, SpectrumSegment *> {
 
-class RemoveDC : public Component,
-                 public Communication<SpectrumSegment *, SpectrumSegment *> {
+  public:
+    RemoveDC();
 
-public:
-  RemoveDC();
+    ~RemoveDC(){};
 
-  ~RemoveDC(){};
+    std::string getNameId() { return std::string("RemoveDC"); };
 
-  std::string getNameId() { return std::string("RemoveDC"); };
+    int stop();
 
-  int stop();
+    ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
+    void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
+        mQueueIn = QueueIn;
+    };
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueIn() { return mQueueIn; }
-  void setQueueIn(ReaderWriterQueue<SpectrumSegment *> *QueueIn) {
-    mQueueIn = QueueIn;
-  };
+    ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
+    void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
 
-  ReaderWriterQueue<SpectrumSegment *> *getQueueOut() { return mQueueOut; };
-  void setQueueOut(ReaderWriterQueue<SpectrumSegment *> *QueueOut){};
+  private:
+    void run();
 
-private:
-  void run();
-
-
-  ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
-  ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueOut;
+    ReaderWriterQueue<SpectrumSegment *> *mQueueIn;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_REMOVEDC_H
+#endif // ORFS_SENSOR_REMOVEDC_H

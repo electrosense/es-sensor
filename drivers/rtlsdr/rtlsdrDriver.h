@@ -20,8 +20,8 @@
  * 	    Roberto Calvo-Palomino <roberto.calvo@imdea.org>
  *
  */
-#ifndef ES_SENSOR_RTLSDR_H
-#define ES_SENSOR_RTLSDR_H
+#ifndef ORFS_SENSOR_RTLSDR_H
+#define ORFS_SENSOR_RTLSDR_H
 
 #include <iostream>
 #include <rtl-sdr.h>
@@ -41,7 +41,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../../context/ElectrosenseContext.h"
+#include "../../context/OpenRFSenseContext.h"
 #include "../Communication.h"
 #include "../Component.h"
 #include "../Driver.h"
@@ -57,7 +57,7 @@ extern "C" {
 #include "converter/converter.h"
 };
 
-namespace electrosense {
+namespace openrfsense {
 
 class rtlsdrDriver : public Driver,
                      public Component,
@@ -112,6 +112,6 @@ private:
   std::vector<std::complex<float>> m_capbuf_raw;
 };
 
-} // namespace electrosense
+} // namespace openrfsense
 
-#endif // ES_SENSOR_RTLSDR_H
+#endif // ORFS_SENSOR_RTLSDR_H
