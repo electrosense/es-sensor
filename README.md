@@ -1,7 +1,7 @@
 
-# es-sensor 
+# orfs-sensor 
 
-Sensing software used in [OpenRFSense](https://github.com/openrfsense) nodes, forked from [es-sensor](https://github.com/electrosense/es-sensor).
+Sensing software used in [OpenRFSense](https://github.com/openrfsense) nodes, originally forked from [es-sensor](https://github.com/electrosense/es-sensor).
 
 This package will be pulled and built by the OpenRFSense [image builder](https://github.com/openrfsense/image), but build instructions are also included below.
 
@@ -18,7 +18,7 @@ or, on Arch-based distros:
 $ sudo pacman -S git cmake rtl-sdr liquid-dsp xz libusb libusb-compat fftw openssl json-c zlib
 ```
 
-More details on Apache Avro are available on [the Avro website](http://avro.apache.org). Releases may be downloaded from [the official mirror](https://dlcdn.apache.org/avro/) or from your package manager:
+More details on Apache Avro are available on [the Avro website](http://avro.apache.org). Releases may be downloaded from your package manager of choice:
 
 ```shell
 $ sudo apt install libavro-dev libavro23
@@ -34,7 +34,7 @@ $ sudo yay -S avro-c
 Clone and build the repo (CMake is needed):
 
 ```shell
-$ git clone https://github.com/electrosense/es-sensor
+$ git clone https://github.com/openrfsense/orfs-sensor
 $ mkdir build && cd build
 $ cmake ..
 ```
